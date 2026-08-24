@@ -1,0 +1,387 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+:root {
+  /* ── Light theme palette (Section 9.2) ── */
+  --color-bg: #f6f8f7;
+  --color-surface: #ffffff;
+  --color-border: #e3eeec;
+  --color-text-primary: #0f1f2e;
+  --color-text-secondary: #54666b;
+  --color-accent: #1a7c74;
+  --color-accent-hover: #22b8a6;
+
+  /* Fallback aliases for inline styles */
+  --color-bg-base: #f6f8f7;
+  --color-bg-surface: #ffffff;
+  --color-border-hairline: #e3eeec;
+  --color-plus-line: #e3eeec;
+
+  /* Standard theme variables */
+  --background: #f6f8f7;
+  --foreground: #0f1f2e;
+  --card: #ffffff;
+  --card-foreground: #0f1f2e;
+  --primary: #1a7c74;
+  --primary-foreground: #ffffff;
+  --secondary: #54666b;
+  --secondary-foreground: #ffffff;
+  --muted: #e3eeec;
+  --muted-foreground: #54666b;
+  --accent: #22b8a6;
+  --accent-foreground: #ffffff;
+  --destructive: #a93e3e;
+  --destructive-foreground: #ffffff;
+  --border: #e3eeec;
+  --input: #e3eeec;
+  --ring: #1a7c74;
+
+  /* Status Colors */
+  --status-low-text: #1a7c74;
+  --status-low-bg: #e1f5ee;
+  --status-medium-text: #b8823a;
+  --status-medium-bg: #fbf1e2;
+  --status-high-text: #bd5b2c;
+  --status-high-bg: #fbe8df;
+  --status-critical-text: #a93e3e;
+  --status-critical-bg: #f8e2e2;
+}
+
+.dark {
+  /* ── Dark theme palette (Section 9.2) ── */
+  --color-bg: #0a1117;
+  --color-surface: #11202a;
+  --color-border: #1c2e38;
+  --color-text-primary: #e6f2f1;
+  --color-text-secondary: #8fa3a8;
+  --color-accent: #16c7b4;
+  --color-accent-hover: #7de6d6;
+
+  /* Fallback aliases for inline styles */
+  --color-bg-base: #0a1117;
+  --color-bg-surface: #11202a;
+  --color-border-hairline: #1c2e38;
+  --color-plus-line: #1c2e38;
+
+  /* Standard theme variables */
+  --background: #0a1117;
+  --foreground: #e6f2f1;
+  --card: #11202a;
+  --card-foreground: #e6f2f1;
+  --primary: #16c7b4;
+  --primary-foreground: #0a1117;
+  --secondary: #8fa3a8;
+  --secondary-foreground: #0a1117;
+  --muted: #1c2e38;
+  --muted-foreground: #8fa3a8;
+  --accent: #7de6d6;
+  --accent-foreground: #0a1117;
+  --destructive: #e2585b;
+  --destructive-foreground: #ffffff;
+  --border: #1c2e38;
+  --input: #1c2e38;
+  --ring: #16c7b4;
+
+  /* Status Colors */
+  --status-low-text: #4fd9c4;
+  --status-low-bg: #12332e;
+  --status-medium-text: #e0a94a;
+  --status-medium-bg: #332512;
+  --status-high-text: #e07a45;
+  --status-high-bg: #331f14;
+  --status-critical-text: #e2585b;
+  --status-critical-bg: #331616;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Fonts */
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+  --font-fira: "Fira Sans", system-ui, sans-serif;
+  --font-fira-mono: "Fira Code", monospace;
+
+  /* Statuses */
+  --color-status-low-text: var(--status-low-text);
+  --color-status-low-bg: var(--status-low-bg);
+  --color-status-medium-text: var(--status-medium-text);
+  --color-status-medium-bg: var(--status-medium-bg);
+  --color-status-high-text: var(--status-high-text);
+  --color-status-high-bg: var(--status-high-bg);
+  --color-status-critical-text: var(--status-critical-text);
+  --color-status-critical-bg: var(--status-critical-bg);
+
+  /* Radius */
+  --radius-card: 12px;
+  --radius-pill: 9999px;
+  --radius-sm: 6px;
+}
+
+/* ── Base resets ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-ui);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+}
+
+/* ── Utility: data-dense / mono surfaces ── */
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* ── Card surface ── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+/* ── Hairline divider ── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ── Primary button ── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  background: var(--color-accent);
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+  text-decoration: none;
+}
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+}
+.btn-primary:active {
+  background: var(--color-accent);
+  opacity: 0.9;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Ghost button ── */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  background: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+  text-decoration: none;
+}
+.btn-ghost:hover {
+  border-color: var(--color-accent);
+  background: var(--color-brand-mist);
+}
+
+/* ── Text link ── */
+.link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.link:hover {
+  text-decoration: underline;
+  color: var(--color-accent-hover);
+}
+
+/* ── Input field ── */
+.input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border-color 120ms ease;
+}
+.input::placeholder {
+  color: var(--color-text-secondary);
+}
+.input:focus {
+  border-color: var(--color-accent);
+}
+.input.error {
+  border-color: var(--color-status-high-text);
+}
+
+/* ── Label ── */
+.label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.375rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ── Status badge (pill-shaped) ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.625rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.badge-low {
+  color: var(--color-status-low-text);
+  background: var(--color-status-low-bg);
+}
+.badge-medium {
+  color: var(--color-status-medium-text);
+  background: var(--color-status-medium-bg);
+}
+.badge-high {
+  color: var(--color-status-high-text);
+  background: var(--color-status-high-bg);
+}
+.badge-critical {
+  color: var(--color-status-critical-text);
+  background: var(--color-status-critical-bg);
+}
+
+/* ── Error message inline ── */
+.error-msg {
+  font-size: 0.75rem;
+  color: var(--color-status-high-text);
+  margin-top: 0.375rem;
+}
+
+/* ── Page shell ── */
+.page-shell {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding-left: var(--spacing-page-x);
+  padding-right: var(--spacing-page-x);
+}
+
+/* ── Org avatar (generated initials) ── */
+.org-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--color-brand-mist);
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 0.875rem;
+  font-family: var(--font-ui);
+  flex-shrink: 0;
+}
+.org-avatar-lg {
+  width: 64px;
+  height: 64px;
+  font-size: 1.25rem;
+  border-radius: var(--radius-card);
+}
+
+/* ── Loading spinner ── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+
+/* ── Slide-in for search results ── */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.slide-in {
+  animation: slide-in 150ms ease;
+}
+
+/* ── Step indicator dots ── */
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: background 200ms ease;
+}
+.step-dot.active {
+  background: var(--color-accent);
+}
+.step-dot.done {
+  background: var(--color-accent);
+  opacity: 0.4;
+}
