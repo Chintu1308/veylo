@@ -12,7 +12,7 @@
     "dev": "tsx watch src/main.ts",
     "start:dev": "tsx watch src/main.ts",
     "start:debug": "nest start --debug --watch --entryFile apps/api/src/main",
-    "start:prod": "node dist/apps/api/src/main",
+    "start:prod": "node dist/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "typecheck": "tsc --noEmit",
     "test": "jest",
