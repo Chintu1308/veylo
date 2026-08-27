@@ -36,7 +36,7 @@ export async function apiRequest<T>(
     if (res.status === 401) {
       // Clear Supabase session and force redirect to login
       await supabase.auth.signOut().catch(() => {});
-      window.location.href = "/login";
+      window.location.href = `${import.meta.env.BASE_URL}login`;
       throw new Error("Session expired. Please log in again.");
     }
     const body = await res.json().catch(() => ({}));
