@@ -10,6 +10,7 @@ import AuditLogsPage from "./pages/AuditLogsPage";
 import DevicesPage from "./pages/DevicesPage";
 import DeviceDetailsPage from "./pages/DeviceDetailsPage";
 import ProjectGuard from "./components/ProjectGuard";
+import ProjectRedirect from "./components/ProjectRedirect";
 import { useAuthStore } from "./store/authStore";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -27,10 +28,13 @@ export default function Router() {
         <Route path="/auth/forgot-password" element={<LoginPage />} />
 
         {/* Global Hub - Redirect to the first available project or show a project list */}
-        {/* We will just redirect to landing for now if they hit /dashboard directly */}
         <Route
           path="/dashboard"
-          element={<Navigate to="/" replace />}
+          element={
+            <ProtectedRoute>
+              <ProjectRedirect />
+            </ProtectedRoute>
+          }
         />
 
         {/* Protected Project Shell (Slug Routing) */}
