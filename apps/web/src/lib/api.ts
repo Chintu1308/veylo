@@ -33,7 +33,7 @@ export async function apiRequest<T>(
   });
 
   if (!res.ok) {
-    if (res.status === 401) {
+    if (res.status === 401 && !path.startsWith("/auth/")) {
       // Clear Supabase session and force redirect to login
       await supabase.auth.signOut().catch(() => {});
       window.location.href = `${import.meta.env.BASE_URL}login`;
