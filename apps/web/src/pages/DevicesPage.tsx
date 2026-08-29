@@ -78,6 +78,10 @@ export default function DevicesPage() {
       });
     });
 
+    socket.on("device.deleted", (payload: { id: string }) => {
+      setDevices((prev) => prev.filter((d) => d.id !== payload.id));
+    });
+
     return () => {
       socket.emit("leaveProject", { projectId: selectedProject.id });
       socket.disconnect();
@@ -290,58 +294,69 @@ export async function veyloZeroTrustGuard(req, res, next) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
-                  {devices.map((device) => (
-                    <tr 
-                      key={device.id} 
-                      className="hover:bg-muted/10 transition-colors cursor-pointer"
-                      onClick={() => navigate(`/${selectedProject?.slug}/devices/${device.id}`)}
-                    >
-                      <td className="p-4 text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          {renderOsIcon(device.os)}
-                          <span className="text-xs font-mono font-bold uppercase">{device.os}</span>
-                        </div>
-                      </td>
-                      <td className="p-4 font-bold text-foreground">
-                        {device.name}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 bg-muted h-1.5 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${device.posture_score}%`,
-                                backgroundColor:
-                                  device.posture_score >= 80
-                                    ? "var(--color-status-low-text, #10B981)"
-                                    : device.posture_score >= 50
-                                      ? "var(--color-status-medium-text, #F59E0B)"
-                                      : "var(--color-status-critical-text, #EF4444)",
-                              }}
-                            />
+                  {devices.map((device) => {
+                    const isOnline = new Date().getTime() - new Date(device.last_seen_at).getTime() < 3 * 60 * 1000;
+                    return (
+                      <tr 
+                        key={device.id} 
+                        className="hover:bg-muted/10 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/${selectedProject?.slug}/devices/${device.id}`)}
+                      >
+                        <td className="p-4 text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            {renderOsIcon(device.os)}
+                            <span className="text-xs font-mono font-bold uppercase">{device.os}</span>
                           </div>
-                          <span className="text-xs font-mono font-bold">{device.posture_score}%</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className={`text-[10px] font-bold font-mono px-2 py-0.5 border rounded uppercase ${
-                          device.status === "approved"
-                            ? "bg-status-low-bg text-status-low-text border-status-low-text/20"
-                            : device.status === "pending"
-                              ? "bg-status-medium-bg text-status-medium-text border-status-medium-text/20"
-                              : "bg-status-critical-bg text-status-critical-text border-status-critical-text/20"
-                        }`}>
-                          {device.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-xs font-mono text-muted-foreground">
-                        {device.last_seen_at 
-                          ? new Date(device.last_seen_at).toLocaleString() 
-                          : "Never"}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="p-4 font-bold text-foreground">
+                          {device.name}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 bg-muted h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{
+                                  width: `${device.posture_score}%`,
+                                  backgroundColor:
+                                    device.posture_score >= 80
+                                      ? "var(--color-status-low-text, #10B981)"
+                                      : device.posture_score >= 50
+                                        ? "var(--color-status-medium-text, #F59E0B)"
+                                        : "var(--color-status-critical-text, #EF4444)",
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs font-mono font-bold">{device.posture_score}%</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className={`text-[10px] font-bold font-mono px-2 py-0.5 border rounded uppercase ${
+                            device.status === "approved"
+                              ? "bg-status-low-bg text-status-low-text border-status-low-text/20"
+                              : device.status === "pending"
+                                ? "bg-status-medium-bg text-status-medium-text border-status-medium-text/20"
+                                : "bg-status-critical-bg text-status-critical-text border-status-critical-text/20"
+                          }`}>
+                            {device.status}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-status-low-text" : "bg-status-critical-text"}`} />
+                            <span className={`text-[11px] font-bold uppercase tracking-wider ${isOnline ? "text-status-low-text" : "text-status-critical-text"}`}>
+                              {isOnline ? "Online" : "Offline"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-xs font-mono text-muted-foreground">
+                          {device.last_seen_at 
+                            ? new Date(device.last_seen_at).toLocaleString() 
+                            : "Never"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

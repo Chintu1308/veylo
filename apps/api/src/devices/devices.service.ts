@@ -163,4 +163,18 @@ export class DevicesService {
     this.eventsGateway.broadcastToProject(projectId, 'device.updated', data);
     return data as Device;
   }
+
+  async deleteDevice(projectId: string, deviceId: string): Promise<void> {
+    const { error } = await this.supabase.admin
+      .from('devices')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('id', deviceId);
+
+    if (error) {
+      throw new Error(`Failed to delete device: ${error.message}`);
+    }
+
+    this.eventsGateway.broadcastToProject(projectId, 'device.deleted', { id: deviceId });
+  }
 }

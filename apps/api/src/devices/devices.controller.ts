@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Post,
   Patch,
+  Delete,
   Param,
   Req,
   UseGuards,
@@ -159,5 +160,28 @@ export class DevicesController {
     });
 
     return device;
+  }
+
+  @Delete(':deviceId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles('project_admin')
+  async deleteDevice(
+    @Param('projectId') projectId: string,
+    @Param('deviceId') deviceId: string,
+    @CurrentUser() user: JwtPayload,
+    @Req() req: Request,
+  ) {
+    await this.devicesService.deleteDevice(projectId, deviceId);
+
+    await this.auditLogsService.logAction({
+      projectId: projectId,
+      actorId: user.sub,
+      actorEmail: user.email,
+      action: 'device.deleted',
+      targetType: 'device',
+      targetId: deviceId,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
   }
 }
