@@ -2,11 +2,7 @@ import {
   IconActivity,
   IconAlertTriangle,
   IconCpu,
-  IconFlame,
-  IconPlayerPlay,
-  IconTimeline,
   IconUsers,
-  IconTerminal,
   IconShieldCheck,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -29,11 +25,6 @@ export default function DashboardOverview() {
     forensics: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [simulationLogs, setSimulationLogs] = useState<string[]>([]);
-
-  // Simulation states
-  const [simulating, setSimulating] = useState<string | null>(null);
-
   const projectId = selectedProject?.id;
   const token = session?.access_token;
 
@@ -73,132 +64,6 @@ export default function DashboardOverview() {
   useEffect(() => {
     fetchLiveStats();
   }, [projectId, token]);
-
-  function addLog(msg: string) {
-    const timestamp = new Date().toLocaleTimeString();
-    setSimulationLogs((prev) => [`[${timestamp}] ${msg}`, ...prev.slice(0, 8)]);
-  }
-
-  // Simulation Triggers
-  async function handleSimulateDevice() {
-    if (!projectId || !token) return;
-    setSimulating("device");
-    try {
-      const names = ["Endpoint macOS Server", "Bastion Host", "Analytics Pipeline iPad", "Zero Trust Proxy Host", "Admin Windows VM"];
-      const OSs = ["macos", "linux", "ios", "windows", "linux"];
-      const idx = Math.floor(Math.random() * names.length);
-
-      const device = await apiRequest<any>(`/projects/${projectId}/devices/register`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: `${names[idx]} (Simulated)`,
-          os: OSs[idx],
-        }),
-      });
-
-      addLog(`Device registered: ${device.name} (${device.os.toUpperCase()})`);
-      fetchLiveStats();
-    } catch (err: any) {
-      addLog(`❌ Device simulation failed: ${err.message}`);
-    } finally {
-      setSimulating(null);
-    }
-  }
-
-  async function handleSimulateNetworkEvent() {
-    if (!projectId || !token) return;
-    setSimulating("network");
-    try {
-      const ips = ["192.168.1.102", "10.0.4.15", "172.16.89.4", "45.79.112.5", "8.8.8.8"];
-      const ports = [80, 443, 3306, 22, 5432];
-      const actions = ["allow", "allow", "allow", "deny", "allow"];
-      const idx = Math.floor(Math.random() * ips.length);
-
-      await apiRequest<any>(`/projects/${projectId}/monitoring/events`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          source_ip: ips[idx],
-          destination_ip: "10.0.0.1",
-          destination_port: ports[idx],
-          protocol: "tcp",
-          bytes_transferred: Math.floor(Math.random() * 8000) + 200,
-          action: actions[idx],
-        }),
-      });
-
-      addLog(`Network traffic logged: ${ips[idx]} → port ${ports[idx]} [${actions[idx].toUpperCase()}]`);
-      fetchLiveStats();
-    } catch (err: any) {
-      addLog(`❌ Network simulation failed: ${err.message}`);
-    } finally {
-      setSimulating(null);
-    }
-  }
-
-  async function handleTriggerAlert() {
-    if (!projectId || !token) return;
-    setSimulating("alert");
-    try {
-      const titles = ["Unauthorized SSH Access Attempt", "Traffic Volume Anomaly", "Brute-Force Connection Triggered", "Out-of-hours Admin Action"];
-      const severities = ["high", "medium", "critical", "low"];
-      const idx = Math.floor(Math.random() * titles.length);
-
-      const alert = await apiRequest<any>(`/projects/${projectId}/incidents`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: titles[idx],
-          description: "Triggered from the simulated testing environment console.",
-          severity: severities[idx],
-        }),
-      });
-
-      addLog(`Alert generated: ${alert.title} [SEVERITY: ${alert.severity.toUpperCase()}]`);
-      fetchLiveStats();
-    } catch (err: any) {
-      addLog(`❌ Alert simulation failed: ${err.message}`);
-    } finally {
-      setSimulating(null);
-    }
-  }
-
-  async function handleSimulateForensicEvent() {
-    if (!projectId || !token) return;
-    setSimulating("forensic");
-    try {
-      const resources = ["Auth Service Config", "Postgres Root Schema", "Mongo Events Log", "SSO Policy Manifest"];
-      const idx = Math.floor(Math.random() * resources.length);
-
-      await apiRequest<any>(`/projects/${projectId}/forensics/events`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          event_data: `Policy Update: ${resources[idx]} - posture_score_threshold updated to 60`,
-        }),
-      });
-
-      addLog(`Forensic record chain hashed: Target "${resources[idx]}"`);
-      fetchLiveStats();
-    } catch (err: any) {
-      addLog(`❌ Forensic simulation failed: ${err.message}`);
-    } finally {
-      setSimulating(null);
-    }
-  }
 
   const statCards = [
     {
@@ -262,87 +127,26 @@ export default function DashboardOverview() {
         ))}
       </div>
 
-      {/* Two Columns: Test Environment Console & Main Isolation Card */}
+      {/* Two Columns: Live Telemetry Status & Main Isolation Card */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Interactive Simulation Environment Console */}
+        {/* Live Status Console */}
         <div className="bg-card border border-border p-8 rounded-2xl flex flex-col gap-6">
           <div>
             <h2 className="text-base font-bold text-foreground mb-1">
-              Telemetry Simulation Console
+              Live Telemetry Status
             </h2>
             <p className="text-xs text-muted-foreground">
-              Manually trigger events to populate telemetry charts, register virtual entities, and test posture rules.
+              Veylo is currently listening for incoming device posture events, network flows, and forensic ledger updates.
             </p>
           </div>
 
-          {/* Trigger Actions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={handleSimulateDevice}
-              disabled={!!simulating}
-              className="flex items-center justify-center gap-2 py-2.5 px-4 bg-muted border border-border text-foreground hover:bg-primary hover:text-primary-foreground text-xs font-bold rounded-lg cursor-pointer transition-all disabled:opacity-50"
-            >
-              <IconPlayerPlay size={14} />
-              {simulating === "device" ? "Registering…" : "Register Device"}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSimulateNetworkEvent}
-              disabled={!!simulating}
-              className="flex items-center justify-center gap-2 py-2.5 px-4 bg-muted border border-border text-foreground hover:bg-primary hover:text-primary-foreground text-xs font-bold rounded-lg cursor-pointer transition-all disabled:opacity-50"
-            >
-              <IconActivity size={14} />
-              {simulating === "network" ? "Streaming…" : "Log Net Traffic"}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleTriggerAlert}
-              disabled={!!simulating}
-              className="flex items-center justify-center gap-2 py-2.5 px-4 bg-muted border border-border text-foreground hover:bg-primary hover:text-primary-foreground text-xs font-bold rounded-lg cursor-pointer transition-all disabled:opacity-50"
-            >
-              <IconFlame size={14} />
-              {simulating === "alert" ? "Triggering…" : "Trigger Alert"}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSimulateForensicEvent}
-              disabled={!!simulating}
-              className="flex items-center justify-center gap-2 py-2.5 px-4 bg-muted border border-border text-foreground hover:bg-primary hover:text-primary-foreground text-xs font-bold rounded-lg cursor-pointer transition-all disabled:opacity-50"
-            >
-              <IconTimeline size={14} />
-              {simulating === "forensic" ? "Hashing…" : "Chain Forensic Event"}
-            </button>
-          </div>
-
-          {/* Log Tail Feed */}
-          <div className="bg-background border border-border rounded-lg p-4 font-fira-mono text-[11px] flex flex-col gap-2 max-h-48 overflow-y-auto box-border">
-            <div className="text-muted-foreground flex items-center gap-1 font-bold mb-1 border-b border-border pb-1">
-              <IconTerminal size={12} />
-              <span>LIVE_CONSOLE_LOG_TAIL</span>
-            </div>
-            {simulationLogs.length === 0 ? (
-              <div className="text-muted-foreground/60 italic py-1">
-                Waiting for simulation actions...
-              </div>
-            ) : (
-              simulationLogs.map((log, idx) => (
-                <div
-                  key={idx}
-                  className={`py-0.5 border-l-2 pl-2 ${
-                    log.includes("❌")
-                      ? "border-status-critical-text text-status-critical-text bg-status-critical-bg/10"
-                      : "border-primary/40 text-foreground"
-                  }`}
-                >
-                  {log}
-                </div>
-              ))
-            )}
+          <div className="bg-background border border-border rounded-lg p-10 flex flex-col items-center justify-center gap-3 text-center h-full min-h-[200px]">
+             <div className="spinner mb-2 opacity-50" />
+             <h3 className="font-bold text-foreground text-sm">Waiting for live data...</h3>
+             <p className="text-xs text-muted-foreground max-w-[250px] leading-relaxed">
+               Go to the <strong>Devices</strong> tab to onboard your first machine and start streaming real-time security events.
+             </p>
           </div>
         </div>
 

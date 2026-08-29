@@ -328,7 +328,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
                 Copy and run this shell script locally on developer machines. It registers the device and periodically gathers check compliance to report back.
               </p>
               <pre className="bg-background border border-border p-3 rounded-lg font-fira-mono text-[10px] overflow-x-auto text-foreground max-h-56 box-border select-all">
-                {macOsScript}
+                {macOsScript.replace(projectId, "••••••••••••••••••••••••").replace(token, "••••••••••••••••••••••••")}
               </pre>
             </div>
 
@@ -360,7 +360,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
                 Add this node module middleware in your target server gateway to intercept inbound flows and apply Zero Trust validation.
               </p>
               <pre className="bg-background border border-border p-3 rounded-lg font-fira-mono text-[10px] overflow-x-auto text-foreground max-h-56 box-border select-all">
-                {nodeMiddleware}
+                {nodeMiddleware.replace(projectId, "••••••••••••••••••••••••")}
               </pre>
             </div>
 
@@ -380,7 +380,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
                 </div>
                 <div>
                   <h4 className="font-bold text-foreground mb-0.5">Identify Active Project</h4>
-                  <p>The code blocks are pre-populated with your current project ID: <code className="font-mono text-foreground font-bold">{projectId}</code>. This maps all external clients to this tenancy profile.</p>
+                  <p>When you click <strong>Copy</strong>, the scripts are pre-populated with your current project ID and authentication token under the hood. For security, these IDs are hidden on the screen.</p>
                 </div>
               </div>
 
