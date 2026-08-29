@@ -34,8 +34,13 @@ export const UpdateDeviceStatusSchema = z.object({
   status: z.enum(["approved", "pending", "blocked"]),
 });
 
+export const UpdateDeviceNameSchema = z.object({
+  name: z.string().min(1, "Device name cannot be empty"),
+});
+
 export type Device = z.infer<typeof DeviceSchema>;
 export type DeviceHistory = z.infer<typeof DeviceHistorySchema>;
 export type RegisterDeviceRequest = z.infer<typeof RegisterDeviceSchema>;
 export type UpdatePostureRequest = z.infer<typeof UpdatePostureSchema>;
 export type UpdateDeviceStatusRequest = z.infer<typeof UpdateDeviceStatusSchema>;
+export type UpdateDeviceNameRequest = z.infer<typeof UpdateDeviceNameSchema>;

@@ -10,6 +10,8 @@ import {
   IconDeviceMobile,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 import { apiRequest } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 
@@ -27,8 +29,9 @@ interface Device {
 
 export default function DevicesPage() {
   const { session, selectedProject } = useAuthStore();
+  const navigate = useNavigate();
   const [devices, setDevices] = useState<Device[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<"list" | "integration">("list");
@@ -38,19 +41,14 @@ export default function DevicesPage() {
   const token = session?.access_token ?? "YOUR_JWT_TOKEN";
 
   async function fetchDevices() {
-    if (!selectedProject?.id || !session?.access_token) return;
+    if (!selectedProject?.id) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await apiRequest<Device[]>(
-        `/projects/${selectedProject.id}/devices`,
-        {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        }
-      );
+      const data = await apiRequest<Device[]>(`/projects/${selectedProject.id}/devices`);
       setDevices(data);
-    } catch (err) {
-      setError((err as Error).message);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -58,7 +56,33 @@ export default function DevicesPage() {
 
   useEffect(() => {
     fetchDevices();
-  }, [selectedProject?.id, session?.access_token]);
+  }, [selectedProject?.id]);
+
+  useEffect(() => {
+    if (!selectedProject?.id) return;
+    
+    const socketUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:3001";
+    const socket = io(socketUrl);
+    
+    socket.on("connect", () => {
+      socket.emit("joinProject", { projectId: selectedProject.id });
+    });
+
+    socket.on("device.updated", (updatedDevice: Device) => {
+      setDevices((prev) => {
+        const exists = prev.find((d) => d.id === updatedDevice.id);
+        if (exists) {
+          return prev.map((d) => (d.id === updatedDevice.id ? updatedDevice : d));
+        }
+        return [...prev, updatedDevice];
+      });
+    });
+
+    return () => {
+      socket.emit("leaveProject", { projectId: selectedProject.id });
+      socket.disconnect();
+    };
+  }, [selectedProject?.id]);
 
   function copyToClipboard(text: string, id: string) {
     navigator.clipboard.writeText(text);
@@ -267,7 +291,11 @@ export async function veyloZeroTrustGuard(req, res, next) {
                 </thead>
                 <tbody className="divide-y divide-border/60">
                   {devices.map((device) => (
-                    <tr key={device.id} className="hover:bg-muted/5 transition-colors">
+                    <tr 
+                      key={device.id} 
+                      className="hover:bg-muted/10 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/${selectedProject?.slug}/devices/${device.id}`)}
+                    >
                       <td className="p-4 text-muted-foreground">
                         <div className="flex items-center gap-1">
                           {renderOsIcon(device.os)}

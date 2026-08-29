@@ -1,5 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase.service';
+import { EventsGateway } from '../events/events.gateway';
 import type { Device, DeviceHistory, RegisterDeviceRequest } from '@veylo/shared';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class DevicesService {
   constructor(
     @Inject(SupabaseService)
     private readonly supabase: SupabaseService,
+    @Inject(EventsGateway)
+    private readonly eventsGateway: EventsGateway,
   ) {}
 
   async listDevices(projectId: string): Promise<Device[]> {
@@ -67,6 +70,7 @@ export class DevicesService {
       details: { info: 'Device registered' },
     });
 
+    this.eventsGateway.broadcastToProject(projectId, 'device.updated', data);
     return data as Device;
   }
 
@@ -114,6 +118,7 @@ export class DevicesService {
       details,
     });
 
+    this.eventsGateway.broadcastToProject(projectId, 'device.updated', data);
     return data as Device;
   }
 
@@ -133,6 +138,29 @@ export class DevicesService {
     if (error || !data) {
       throw new Error(`Failed to update device status: ${error?.message}`);
     }
+    
+    this.eventsGateway.broadcastToProject(projectId, 'device.updated', data);
+    return data as Device;
+  }
+
+  async updateDeviceName(
+    projectId: string,
+    deviceId: string,
+    name: string,
+  ): Promise<Device> {
+    const { data, error } = await this.supabase.admin
+      .from('devices')
+      .update({ name })
+      .eq('project_id', projectId)
+      .eq('id', deviceId)
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      throw new Error(`Failed to update device name: ${error?.message}`);
+    }
+    
+    this.eventsGateway.broadcastToProject(projectId, 'device.updated', data);
     return data as Device;
   }
 }

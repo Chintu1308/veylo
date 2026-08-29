@@ -5,6 +5,7 @@
  * Automatically attaches a Supabase Bearer token when available.
  */
 import { supabase } from "./supabase";
+import { useAuthStore } from "../store/authStore";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
@@ -12,10 +13,9 @@ export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  // Pull the current session token (real or mock)
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // Pull the current session token from the local store
+  const state = useAuthStore.getState();
+  const session = state.session;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -34,8 +34,9 @@ export async function apiRequest<T>(
 
   if (!res.ok) {
     if (res.status === 401 && !path.startsWith("/auth/")) {
-      // Clear Supabase session and force redirect to login
+      // Clear sessions and force redirect to login
       await supabase.auth.signOut().catch(() => {});
+      useAuthStore.getState().logout();
       window.location.href = `${import.meta.env.BASE_URL}login`;
       throw new Error("Session expired. Please log in again.");
     }

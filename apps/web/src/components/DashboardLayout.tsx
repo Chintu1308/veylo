@@ -107,10 +107,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       });
 
       setProjects((prev) => [...prev, newProj]);
-      setProject(newProj);
       setShowCreateModal(false);
       setNewProjectName("");
       setNewProjectDesc("");
+      navigate(`/${newProj.slug}`);
     } catch (err: any) {
       setCreateError(err.message || "Failed to create project.");
     } finally {
@@ -118,29 +118,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }
 
+  const currentSlug = selectedProject?.slug || "dashboard";
+  
   const menuItems = [
     {
-      path: "/dashboard",
+      path: `/${currentSlug}`,
       label: "Overview",
       icon: <IconLayoutDashboard size={18} stroke={2} />,
     },
     {
-      path: "/dashboard/members",
+      path: `/${currentSlug}/members`,
       label: "Collaborators",
       icon: <IconUsers size={18} stroke={2} />,
     },
     {
-      path: "/dashboard/devices",
+      path: `/${currentSlug}/devices`,
       label: "Devices",
       icon: <IconDevices size={18} stroke={2} />,
     },
     {
-      path: "/dashboard/settings",
+      path: `/${currentSlug}/settings`,
       label: "Settings",
       icon: <IconCode size={18} stroke={2} />,
     },
     {
-      path: "/dashboard/audit-logs",
+      path: `/${currentSlug}/audit-logs`,
       label: "Audit Logs",
       icon: <IconTimeline size={18} stroke={2} />,
     },
@@ -188,7 +190,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               value={selectedProject?.id ?? ""}
               onChange={(e) => {
                 const proj = projects.find((p) => p.id === e.target.value);
-                if (proj) setProject(proj);
+                if (proj) {
+                  // Navigate to the new project's slug, replacing the current slug in the URL
+                  const currentPath = location.pathname;
+                  const newPath = currentPath.replace(`/${currentSlug}`, `/${proj.slug}`);
+                  navigate(newPath);
+                }
               }}
               className="w-full bg-card border border-border text-foreground rounded-lg py-1.5 px-3 font-mono text-xs focus:outline-none focus:border-primary cursor-pointer transition-all"
             >

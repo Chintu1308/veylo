@@ -13,8 +13,8 @@ export class MonitoringService {
     private readonly incidentsService: IncidentsService,
   ) {}
 
-  async listEvents(projectId: string, limit = 100) {
-    return this.mongo.getEvents(projectId, {}, limit);
+  async listEvents(projectId: string, filter: Record<string, any> = {}, limit = 100) {
+    return this.mongo.getEvents(projectId, filter, limit);
   }
 
   async logNetworkEvent(

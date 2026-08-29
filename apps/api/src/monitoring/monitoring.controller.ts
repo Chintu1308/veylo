@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   Inject,
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { MonitoringService } from './monitoring.service';
@@ -26,8 +27,11 @@ export class MonitoringController {
 
   @Get('events')
   @Roles('project_admin', 'security_analyst')
-  async getEvents(@Param('projectId') projectId: string) {
-    return this.monitoringService.listEvents(projectId);
+  async getEvents(
+    @Param('projectId') projectId: string,
+    @Query('deviceId') deviceId?: string,
+  ) {
+    return this.monitoringService.listEvents(projectId, deviceId ? { device_id: deviceId } : {}, 100);
   }
 
   @Post('events')

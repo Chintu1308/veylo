@@ -17,9 +17,11 @@ import {
   RegisterDeviceSchema,
   UpdatePostureSchema,
   UpdateDeviceStatusSchema,
+  UpdateDeviceNameSchema,
   RegisterDeviceRequest,
   UpdatePostureRequest,
   UpdateDeviceStatusRequest,
+  UpdateDeviceNameRequest,
 } from '@veylo/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { DevicesService } from './devices.service';
@@ -126,6 +128,34 @@ export class DevicesController {
       targetId: device.id,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],
+    });
+
+    return device;
+  }
+
+  @Patch(':deviceId/name')
+  @HttpCode(HttpStatus.OK)
+  @Roles('project_admin')
+  async updateName(
+    @Param('projectId') projectId: string,
+    @Param('deviceId') deviceId: string,
+    @Body(new ZodValidationPipe(UpdateDeviceNameSchema))
+    body: UpdateDeviceNameRequest,
+    @CurrentUser() user: JwtPayload,
+    @Req() req: Request,
+  ) {
+    const device = await this.devicesService.updateDeviceName(projectId, deviceId, body.name);
+
+    await this.auditLogsService.logAction({
+      projectId: projectId,
+      actorId: user.sub,
+      actorEmail: user.email,
+      action: 'device.renamed',
+      targetType: 'device',
+      targetId: device.id,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      payload: { name: body.name },
     });
 
     return device;

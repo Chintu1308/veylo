@@ -56,6 +56,20 @@ export class ProjectsService {
     return data as Project | null;
   }
 
+  async getProjectBySlug(slug: string): Promise<Project | null> {
+    const { data, error } = await this.supabase.admin
+      .from('projects')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`Error getting project by slug ${slug}`, error.message);
+      return null;
+    }
+    return data as Project | null;
+  }
+
   async createProject(
     name: string,
     slug: string,

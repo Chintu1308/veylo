@@ -11,6 +11,8 @@ import {
   Req,
   UseGuards,
   Inject,
+  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
@@ -44,6 +46,28 @@ export class ProjectsController {
   @Get()
   async list(@CurrentUser() user: JwtPayload) {
     return this.projectsService.listProjects(user.sub);
+  }
+
+  @Get('by-slug/:slug')
+  async getBySlug(
+    @Param('slug') slug: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const project = await this.projectsService.getProjectBySlug(slug);
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+    
+    const isAuthorized = await this.projectsService.verifyProjectCollaborator(
+      project.id,
+      user.sub,
+    );
+    
+    if (!isAuthorized) {
+      throw new ForbiddenException('Not an active collaborator on this project');
+    }
+    
+    return project;
   }
 
   @Post()

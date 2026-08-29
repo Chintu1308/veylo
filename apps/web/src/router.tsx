@@ -8,6 +8,8 @@ import MemberManagementPage from "./pages/MemberManagementPage";
 import ProjectSettingsPage from "./pages/ProjectSettingsPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 import DevicesPage from "./pages/DevicesPage";
+import DeviceDetailsPage from "./pages/DeviceDetailsPage";
+import ProjectGuard from "./components/ProjectGuard";
 import { useAuthStore } from "./store/authStore";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -24,59 +26,88 @@ export default function Router() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/auth/forgot-password" element={<LoginPage />} />
 
-        {/* Protected Dashboard Shell */}
+        {/* Global Hub - Redirect to the first available project or show a project list */}
+        {/* We will just redirect to landing for now if they hit /dashboard directly */}
         <Route
           path="/dashboard"
+          element={<Navigate to="/" replace />}
+        />
+
+        {/* Protected Project Shell (Slug Routing) */}
+        <Route
+          path="/:slug"
           element={
             <ProtectedRoute>
-              <DashboardLayout>
-                <DashboardOverview />
-              </DashboardLayout>
+              <ProjectGuard>
+                <DashboardLayout>
+                  <DashboardOverview />
+                </DashboardLayout>
+              </ProjectGuard>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/dashboard/members"
+          path="/:slug/members"
           element={
             <ProtectedRoute>
-              <DashboardLayout>
-                <MemberManagementPage />
-              </DashboardLayout>
+              <ProjectGuard>
+                <DashboardLayout>
+                  <MemberManagementPage />
+                </DashboardLayout>
+              </ProjectGuard>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/dashboard/devices"
+          path="/:slug/devices"
           element={
             <ProtectedRoute>
-              <DashboardLayout>
-                <DevicesPage />
-              </DashboardLayout>
+              <ProjectGuard>
+                <DashboardLayout>
+                  <DevicesPage />
+                </DashboardLayout>
+              </ProjectGuard>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/dashboard/settings"
+          path="/:slug/devices/:deviceId"
           element={
             <ProtectedRoute>
-              <DashboardLayout>
-                <ProjectSettingsPage />
-              </DashboardLayout>
+              <ProjectGuard>
+                <DashboardLayout>
+                  <DeviceDetailsPage />
+                </DashboardLayout>
+              </ProjectGuard>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/dashboard/audit-logs"
+          path="/:slug/settings"
           element={
             <ProtectedRoute>
-              <DashboardLayout>
-                <AuditLogsPage />
-              </DashboardLayout>
+              <ProjectGuard>
+                <DashboardLayout>
+                  <ProjectSettingsPage />
+                </DashboardLayout>
+              </ProjectGuard>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/:slug/audit-logs"
+          element={
+            <ProtectedRoute>
+              <ProjectGuard>
+                <DashboardLayout>
+                  <AuditLogsPage />
+                </DashboardLayout>
+              </ProjectGuard>
             </ProtectedRoute>
           }
         />
 
-        {/* Catch-all → landing */}
+        {/* Catch-all — landing */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

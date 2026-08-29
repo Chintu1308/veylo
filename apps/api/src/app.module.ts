@@ -9,6 +9,7 @@ import { DevicesModule } from './devices/devices.module';
 import { PoliciesModule } from './policies/policies.module';
 import { IncidentsModule } from './incidents/incidents.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { EventsModule } from './events/events.module';
 
 /**
  * Root application module.
@@ -42,6 +43,7 @@ import { MonitoringModule } from './monitoring/monitoring.module';
     PoliciesModule,
     IncidentsModule,
     MonitoringModule,
+    EventsModule,
   ],
   providers: [
     {
