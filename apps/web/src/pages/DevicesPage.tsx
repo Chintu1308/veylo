@@ -66,16 +66,19 @@ export default function DevicesPage() {
     setTimeout(() => setCopiedText(null), 2000);
   }
 
+  const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+
   const macOsScript = `# Veylo Mac OS Device Onboarding Script
 # Run this on your target machine to register it and send telemetry posture
 
 export PROJECT_ID="${projectId}"
 export AUTH_TOKEN="${token}"
+export API_BASE="${API_BASE}"
 
 echo "Initializing Veylo Agent enrollment..."
 
 # 1. Register device with Veylo API
-REGISTRATION_RESPONSE=$(curl -s -X POST "http://localhost:3001/projects/\${PROJECT_ID}/devices/register" \\
+REGISTRATION_RESPONSE=$(curl -s -X POST "\${API_BASE}/projects/\${PROJECT_ID}/devices/register" \\
   -H "Authorization: Bearer \${AUTH_TOKEN}" \\
   -H "Content-Type: application/json" \\
   -d '{"name": "Local Workstation Mac", "os": "macos"}')
@@ -101,7 +104,7 @@ while true; do
 
   echo "Reporting Posture Score: \${SCORE}% (Firewall: \${FIREWALL_ON}, Encryption: \${DISK_ENCRYPTED})"
 
-  curl -s -X PATCH "http://localhost:3001/projects/\${PROJECT_ID}/devices/\${DEVICE_ID}/posture" \\
+  curl -s -X PATCH "\${API_BASE}/projects/\${PROJECT_ID}/devices/\${DEVICE_ID}/posture" \\
     -H "Authorization: Bearer \${AUTH_TOKEN}" \\
     -H "Content-Type: application/json" \\
     -d "{\\"posture_score\\": \${SCORE}, \\"details\\": {\\"firewall\\": \${FIREWALL_ON}, \\"encryption\\": \${DISK_ENCRYPTED}}}"
@@ -117,6 +120,7 @@ import axios from 'axios';
 export async function veyloZeroTrustGuard(req, res, next) {
   const projectId = "${projectId}";
   const token = req.headers.authorization; // Expects User Bearer Token
+  const apiBase = "${API_BASE}";
 
   if (!token) {
     return res.status(401).json({ error: "Missing identity token" });
@@ -125,7 +129,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
   try {
     // 1. Log flow metadata & fetch access evaluation
     await axios.post(
-      \`http://localhost:3001/projects/\${projectId}/monitoring/events\`,
+      \`\${apiBase}/projects/\${projectId}/monitoring/events\`,
       {
         source_ip: req.ip || '127.0.0.1',
         destination_ip: req.hostname || 'api.internal',
