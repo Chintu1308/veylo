@@ -68,7 +68,7 @@ export default function DevicesPage() {
 
   const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
-  const macOsScript = `# Veylo Mac OS Device Onboarding Script
+  const macOsScript = `# Veylo Universal Device Onboarding Script (macOS / Linux / Termux)
 # Run this on your target machine to register it and send telemetry posture
 
 export PROJECT_ID="${projectId}"
@@ -77,11 +77,21 @@ export API_BASE="${API_BASE}"
 
 echo "Initializing Veylo Agent enrollment..."
 
+# Detect OS
+OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
+if [[ "$OS_TYPE" == *"linux"* || "$OS_TYPE" == *"android"* ]]; then
+  OS_ID="linux"
+  HOSTNAME=$(hostname 2>/dev/null || echo "Mobile/Linux Node")
+else
+  OS_ID="macos"
+  HOSTNAME=$(hostname 2>/dev/null || echo "Mac Workstation")
+fi
+
 # 1. Register device with Veylo API
 REGISTRATION_RESPONSE=$(curl -s -X POST "\${API_BASE}/projects/\${PROJECT_ID}/devices/register" \\
   -H "Authorization: Bearer \${AUTH_TOKEN}" \\
   -H "Content-Type: application/json" \\
-  -d '{"name": "Local Workstation Mac", "os": "macos"}')
+  -d "{\\"name\\": \\"\${HOSTNAME}\\", \\"os\\": \\"\${OS_ID}\\"}")
 
 DEVICE_ID=$(echo \$REGISTRATION_RESPONSE | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
 
@@ -94,11 +104,20 @@ echo "✅ Device enrolled successfully! Device ID: \$DEVICE_ID"
 
 # 2. Continuous security check & posture feedback loop
 while true; do
-  # Determine local posture (e.g. check firewall status)
-  FIREWALL_ON=\$(socketfilterfw --getstate 2>/dev/null | grep -c "enabled" || echo 1)
-  DISK_ENCRYPTED=\$(fdesetup status 2>/dev/null | grep -c "is On" || echo 1)
-  
   SCORE=100
+  FIREWALL_ON=1
+  DISK_ENCRYPTED=1
+
+  # Basic Mac OS Posture Checks
+  if [ "\$OS_ID" = "macos" ]; then
+    if command -v socketfilterfw >/dev/null 2>&1; then
+      FIREWALL_ON=$(socketfilterfw --getstate 2>/dev/null | grep -c "enabled")
+    fi
+    if command -v fdesetup >/dev/null 2>&1; then
+      DISK_ENCRYPTED=$(fdesetup status 2>/dev/null | grep -c "is On")
+    fi
+  fi
+
   if [ "\$FIREWALL_ON" -eq 0 ]; then SCORE=\$((SCORE - 30)); fi
   if [ "\$DISK_ENCRYPTED" -eq 0 ]; then SCORE=\$((SCORE - 40)); fi
 
@@ -107,7 +126,7 @@ while true; do
   curl -s -X PATCH "\${API_BASE}/projects/\${PROJECT_ID}/devices/\${DEVICE_ID}/posture" \\
     -H "Authorization: Bearer \${AUTH_TOKEN}" \\
     -H "Content-Type: application/json" \\
-    -d "{\\"posture_score\\": \${SCORE}, \\"details\\": {\\"firewall\\": \${FIREWALL_ON}, \\"encryption\\": \${DISK_ENCRYPTED}}}"
+    -d "{\\"posture_score\\": \${SCORE}, \\"details\\": {\\"firewall\\": \${FIREWALL_ON}, \\"encryption\\": \${DISK_ENCRYPTED}}}" >/dev/null
 
   sleep 300
 done`;
@@ -289,7 +308,9 @@ export async function veyloZeroTrustGuard(req, res, next) {
                         </span>
                       </td>
                       <td className="p-4 text-xs font-mono text-muted-foreground">
-                        {new Date(device.last_seen_at).toLocaleString()}
+                        {device.last_seen_at 
+                          ? new Date(device.last_seen_at).toLocaleString() 
+                          : "Never"}
                       </td>
                     </tr>
                   ))}
