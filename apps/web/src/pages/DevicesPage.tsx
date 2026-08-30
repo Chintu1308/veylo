@@ -1,4 +1,4 @@
-import {
+﻿import {
   IconCpu,
   IconTerminal,
   IconCopy,
@@ -28,7 +28,7 @@ interface Device {
 }
 
 export default function DevicesPage() {
-  const { session, selectedProject } = useAuthStore();
+  const { selectedProject } = useAuthStore();
   const navigate = useNavigate();
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,9 +36,6 @@ export default function DevicesPage() {
 
   const [activeTab, setActiveTab] = useState<"list" | "integration">("list");
   const [copiedText, setCopiedText] = useState<string | null>(null);
-
-  const projectId = selectedProject?.id ?? "YOUR_PROJECT_ID";
-  const token = session?.access_token ?? "YOUR_JWT_TOKEN";
 
   async function fetchDevices() {
     if (!selectedProject?.id) return;
@@ -99,9 +96,14 @@ export default function DevicesPage() {
   const macOsScript = `# Veylo Universal Device Onboarding Script (macOS / Linux / Termux)
 # Run this on your target machine to register it and send telemetry posture
 
-export PROJECT_ID="${projectId}"
-export AUTH_TOKEN="${token}"
-export API_BASE="${API_BASE}"
+# Ensure environment variables are set
+if [ -z "$PROJECT_ID" ] || [ -z "$AUTH_TOKEN" ]; then
+  echo "Error: PROJECT_ID and AUTH_TOKEN environment variables must be set."
+  echo "Usage: PROJECT_ID=xxx AUTH_TOKEN=xxx ./onboard.sh"
+  exit 1
+fi
+
+export API_BASE="\${API_BASE:-https://veylo-api.onrender.com}"
 
 echo "Initializing Veylo Agent enrollment..."
 
@@ -115,20 +117,28 @@ else
   HOSTNAME=$(hostname 2>/dev/null || echo "Mac Workstation")
 fi
 
-# 1. Register device with Veylo API
-REGISTRATION_RESPONSE=$(curl -s -X POST "\${API_BASE}/projects/\${PROJECT_ID}/devices/register" \\
-  -H "Authorization: Bearer \${AUTH_TOKEN}" \\
-  -H "Content-Type: application/json" \\
-  -d "{\\"name\\": \\"\${HOSTNAME}\\", \\"os\\": \\"\${OS_ID}\\"}")
+# 1. Register or load device with Veylo API
+DEVICE_ID_FILE="$HOME/.veylo_device_id"
 
-DEVICE_ID=$(echo \$REGISTRATION_RESPONSE | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
+if [ -f "$DEVICE_ID_FILE" ]; then
+  DEVICE_ID=$(cat "$DEVICE_ID_FILE")
+  echo "Found existing Veylo Device ID: $DEVICE_ID"
+else
+  REGISTRATION_RESPONSE=$(curl -s -X POST "\${API_BASE}/projects/\${PROJECT_ID}/devices/register" \\
+    -H "Authorization: Bearer \${AUTH_TOKEN}" \\
+    -H "Content-Type: application/json" \\
+    -d "{\\"name\\": \\"\${HOSTNAME}\\", \\"os\\": \\"\${OS_ID}\\"}")
 
-if [ -z "\$DEVICE_ID" ]; then
-  echo "❌ Enrollment failed. Verify your project ID or authentication token."
-  exit 1
+  DEVICE_ID=$(echo \$REGISTRATION_RESPONSE | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
+
+  if [ -z "\$DEVICE_ID" ]; then
+    echo "[X] Enrollment failed. Verify your project ID or authentication token."
+    exit 1
+  fi
+  
+  echo "\$DEVICE_ID" > "$DEVICE_ID_FILE"
+  echo "[OK] Device enrolled successfully! Device ID saved to $DEVICE_ID_FILE"
 fi
-
-echo "✅ Device enrolled successfully! Device ID: \$DEVICE_ID"
 
 # 2. Continuous security check & posture feedback loop
 while true; do
@@ -156,7 +166,7 @@ while true; do
     -H "Content-Type: application/json" \\
     -d "{\\"posture_score\\": \${SCORE}, \\"details\\": {\\"firewall\\": \${FIREWALL_ON}, \\"encryption\\": \${DISK_ENCRYPTED}}}" >/dev/null
 
-  sleep 300
+  sleep 60
 done`;
 
   const nodeMiddleware = `// Veylo Node.js / Express Zero Trust Access Guard Middleware
@@ -165,7 +175,7 @@ done`;
 import axios from 'axios';
 
 export async function veyloZeroTrustGuard(req, res, next) {
-  const projectId = "${projectId}";
+  const projectId = process.env.VEYLO_PROJECT_ID;
   const token = req.headers.authorization; // Expects User Bearer Token
   const apiBase = "${API_BASE}";
 
@@ -396,7 +406,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
                 Copy and run this shell script locally on developer machines. It registers the device and periodically gathers check compliance to report back.
               </p>
               <pre className="bg-background border border-border p-3 rounded-lg font-fira-mono text-[10px] overflow-x-auto text-foreground max-h-56 box-border select-all">
-                {macOsScript.replace(projectId, "••••••••••••••••••••••••").replace(token, "••••••••••••••••••••••••")}
+                {macOsScript}
               </pre>
             </div>
 
@@ -428,7 +438,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
                 Add this node module middleware in your target server gateway to intercept inbound flows and apply Zero Trust validation.
               </p>
               <pre className="bg-background border border-border p-3 rounded-lg font-fira-mono text-[10px] overflow-x-auto text-foreground max-h-56 box-border select-all">
-                {nodeMiddleware.replace(projectId, "••••••••••••••••••••••••")}
+                {nodeMiddleware}
               </pre>
             </div>
 
@@ -448,7 +458,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
                 </div>
                 <div>
                   <h4 className="font-bold text-foreground mb-0.5">Identify Active Project</h4>
-                  <p>When you click <strong>Copy</strong>, the scripts are pre-populated with your current project ID and authentication token under the hood. For security, these IDs are hidden on the screen.</p>
+                  <p>The scripts use environment variables for your project ID and authentication token. You must set <code>PROJECT_ID</code> and <code>AUTH_TOKEN</code> in your environment before running them to connect to this project.</p>
                 </div>
               </div>
 
@@ -458,7 +468,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
                 </div>
                 <div>
                   <h4 className="font-bold text-foreground mb-0.5">Run Onboarding Script</h4>
-                  <p>Execute the shell script on your client machine. Once verified, check the <strong>Enrolled Devices</strong> tab—your machine will immediately appear as <code className="font-mono text-foreground">pending</code> or <code className="font-mono text-foreground">approved</code> depending on compliance score threshold settings.</p>
+                  <p>Execute the shell script on your client machine. Once verified, check the <strong>Enrolled Devices</strong> tabâ€”your machine will immediately appear as <code className="font-mono text-foreground">pending</code> or <code className="font-mono text-foreground">approved</code> depending on compliance score threshold settings.</p>
                 </div>
               </div>
 
@@ -478,3 +488,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
     </div>
   );
 }
+
+
+
+

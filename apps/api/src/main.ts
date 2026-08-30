@@ -10,7 +10,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS — allow the Vite dev server origin (Vite may pick 5173-5179)
+  // CORS
   app.enableCors({
     origin: process.env.FRONTEND_URL
       ? process.env.FRONTEND_URL.split(',').map((u) => u.trim())
@@ -18,6 +18,7 @@ async function bootstrap() {
           'http://localhost:5173',
           'http://localhost:5174',
           'http://localhost:5175',
+          'https://chintu1308.github.io', // GitHub Pages deployment
         ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
