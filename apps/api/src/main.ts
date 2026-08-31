@@ -12,14 +12,10 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: process.env.FRONTEND_URL
-      ? process.env.FRONTEND_URL.split(',').map((u) => u.trim())
-      : [
-          'http://localhost:5173',
-          'http://localhost:5174',
-          'http://localhost:5175',
-          'https://chintu1308.github.io', // GitHub Pages deployment
-        ],
+    origin: (origin, callback) => {
+      // Allow all origins
+      callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
