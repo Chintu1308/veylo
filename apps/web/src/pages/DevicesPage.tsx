@@ -28,7 +28,7 @@ interface Device {
 }
 
 export default function DevicesPage() {
-  const { selectedProject } = useAuthStore();
+  const { session, selectedProject } = useAuthStore();
   const navigate = useNavigate();
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(false);
@@ -85,8 +85,18 @@ export default function DevicesPage() {
     };
   }, [selectedProject?.id]);
 
-  function copyToClipboard(text: string, id: string) {
-    navigator.clipboard.writeText(text);
+    function copyToClipboard(text: string, id: string) {
+    const projectId = selectedProject?.id ?? "YOUR_PROJECT_ID";
+    const token = session?.access_token ?? "YOUR_JWT_TOKEN";
+    let finalText = text;
+
+    if (id === "macos-script") {
+      finalText = text.replace('<YOUR_PROJECT_ID>', projectId).replace('<YOUR_AUTH_TOKEN>', token);
+    } else if (id === "express-middleware") {
+      finalText = text.replace('process.env.VEYLO_PROJECT_ID', '"' + projectId + '"').replace('req.headers.authorization', '"Bearer ' + token + '"');
+    }
+
+    navigator.clipboard.writeText(finalText);
     setCopiedText(id);
     setTimeout(() => setCopiedText(null), 2000);
   }
@@ -95,6 +105,9 @@ export default function DevicesPage() {
 
   const macOsScript = `# Veylo Universal Device Onboarding Script (macOS / Linux / Termux)
 # Run this on your target machine to register it and send telemetry posture
+
+export PROJECT_ID="<YOUR_PROJECT_ID>"
+export AUTH_TOKEN="<YOUR_AUTH_TOKEN>"
 
 # Ensure environment variables are set
 if [ -z "$PROJECT_ID" ] || [ -z "$AUTH_TOKEN" ]; then
@@ -488,6 +501,11 @@ export async function veyloZeroTrustGuard(req, res, next) {
     </div>
   );
 }
+
+
+
+
+
 
 
 
