@@ -116,7 +116,7 @@ if [ -z "$PROJECT_ID" ] || [ -z "$AUTH_TOKEN" ]; then
   exit 1
 fi
 
-export API_BASE="\${API_BASE:-https://veylo-api.onrender.com}"
+export API_BASE="\${API_BASE:-${API_BASE}}"
 
 echo "Initializing Veylo Agent enrollment..."
 
