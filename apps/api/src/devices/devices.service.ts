@@ -56,6 +56,7 @@ export class DevicesService {
         os: req.os,
         status: 'pending',
         posture_score: 100,
+        last_seen_at: new Date().toISOString(),
       })
       .select('*')
       .single();
