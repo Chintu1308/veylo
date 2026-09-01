@@ -89,10 +89,16 @@ while true; do
 
   echo "Reporting Posture Score: \${SCORE}% (Firewall: \${FIREWALL_ON}, Encryption: \${DISK_ENCRYPTED})"
 
-  curl -s -X PATCH "\${API_BASE}/projects/\${PROJECT_ID}/devices/\${DEVICE_ID}/posture" \\
+  RESPONSE=$(curl -s -w "%{http_code}" -X PATCH "\${API_BASE}/projects/\${PROJECT_ID}/devices/\${DEVICE_ID}/posture" \\
     -H "Authorization: Bearer \${AUTH_TOKEN}" \\
     -H "Content-Type: application/json" \\
-    -d "{\\"posture_score\\": \${SCORE}, \\"details\\": {\\"firewall\\": \${FIREWALL_ON}, \\"encryption\\": \${DISK_ENCRYPTED}}}" >/dev/null
+    -d "{\\"posture_score\\": \${SCORE}, \\"details\\": {\\"firewall\\": \${FIREWALL_ON}, \\"encryption\\": \${DISK_ENCRYPTED}}}")
+
+  HTTP_STATUS=\${RESPONSE: -3}
+  if [ "\$HTTP_STATUS" -ge 400 ]; then
+    echo "[!] Warning: Posture update failed with status \$HTTP_STATUS"
+    echo "\$RESPONSE"
+  fi
 
   sleep 60
 done`,_=`// Veylo Node.js / Express Zero Trust Access Guard Middleware
