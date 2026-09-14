@@ -180,18 +180,21 @@ export class ProjectsService {
     email: string,
     role: 'project_admin' | 'security_analyst' | 'protected_user',
   ): Promise<ProjectMember> {
-    // Resolve user by email from profiles (mockUsers in sandbox, auth in real)
-    const { data: users, error: userErr } = await this.supabase.admin
-      .from('users')
-      .select('id')
-      .ilike('display_name', email.split('@')[0])
-      .limit(1);
+    // Resolve user by email from auth users list
+    const { data: authData, error: authErr } = await this.supabase.admin.auth.admin.listUsers({
+      perPage: 1000
+    });
+    
+    if (authErr || !authData.users) {
+      throw new Error(`Failed to list users: ${authErr?.message}`);
+    }
 
-    if (userErr || !users || users.length === 0) {
+    const authUser = authData.users.find(u => u.email === email);
+    if (!authUser) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
 
-    const userId = users[0].id;
+    const userId = authUser.id;
 
     const { data: member, error } = await this.supabase.admin
       .from('project_members')
