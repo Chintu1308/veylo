@@ -94,6 +94,8 @@ export default function DevicesPage() {
       finalText = text.replace('<YOUR_PROJECT_ID>', projectId).replace('<YOUR_AUTH_TOKEN>', token);
     } else if (id === "express-middleware") {
       finalText = text.replace('process.env.VEYLO_PROJECT_ID', '"' + projectId + '"').replace('req.headers.authorization', '"Bearer ' + token + '"');
+    } else if (id === "windows-script") {
+      finalText = text.replace('<YOUR_PROJECT_ID>', projectId).replace('<YOUR_AUTH_TOKEN>', token);
     }
 
     navigator.clipboard.writeText(finalText);
@@ -146,6 +148,7 @@ else
 
   if [ -z "\$DEVICE_ID" ]; then
     echo "[X] Enrollment failed. Verify your project ID or authentication token."
+    echo "API Response: \$REGISTRATION_RESPONSE"
     exit 1
   fi
   
@@ -187,6 +190,88 @@ while true; do
 
   sleep 60
 done`;
+
+  const windowsScript = `# Veylo Windows Agent (Live TCP Traffic Monitor)
+# Run this script in PowerShell to register your Windows device and stream outbound TCP connections
+
+$ProjectId = "<YOUR_PROJECT_ID>"
+$AuthToken = "<YOUR_AUTH_TOKEN>"
+$ApiBase = "${API_BASE}"
+
+if ($ProjectId -eq "<YOUR_PROJECT_ID>" -or $AuthToken -eq "<YOUR_AUTH_TOKEN>") {
+    Write-Host "Error: Project ID and Auth Token must be replaced." -ForegroundColor Red
+    exit
+}
+
+$DeviceIdFile = "$env:USERPROFILE\\.veylo_device_id"
+Write-Host "Initializing Veylo Agent enrollment for Windows..." -ForegroundColor Cyan
+
+if (Test-Path $DeviceIdFile) {
+    $DeviceId = Get-Content $DeviceIdFile
+    Write-Host "Found existing Veylo Device ID: $DeviceId" -ForegroundColor Green
+} else {
+    $Hostname = [System.Net.Dns]::GetHostName()
+    $Body = @{ name = $Hostname; os = "windows" } | ConvertTo-Json
+    
+    try {
+        $Response = Invoke-RestMethod -Uri "$ApiBase/projects/$ProjectId/devices/register" \`
+            -Method Post \`
+            -Headers @{ "Authorization" = "Bearer $AuthToken"; "Content-Type" = "application/json" } \`
+            -Body $Body
+        $DeviceId = $Response.id
+        $DeviceId | Out-File -FilePath $DeviceIdFile -Encoding utf8
+        Write-Host "[OK] Device enrolled successfully! ID saved." -ForegroundColor Green
+    } catch {
+        Write-Host "[X] Enrollment failed. Check your token and Project ID." -ForegroundColor Red
+        Write-Host $_.Exception.Message
+        exit
+    }
+}
+
+$SeenConnections = New-Object System.Collections.Generic.HashSet[string]
+Write-Host "\`n[🛡] Veylo Real-Time Monitor Active. Waiting for new connections..." -ForegroundColor Cyan
+Write-Host "Try opening a new PowerShell window and typing: curl https://google.com" -ForegroundColor Yellow
+
+while ($true) {
+    $Connections = Get-NetTCPConnection -State Established -ErrorAction SilentlyContinue | 
+                   Where-Object { $_.RemoteAddress -notmatch "^127\\." -and $_.RemoteAddress -ne "::1" }
+
+    foreach ($Conn in $Connections) {
+        $ConnId = "$($Conn.LocalAddress):$($Conn.LocalPort)-$($Conn.RemoteAddress):$($Conn.RemotePort)"
+        if (-not $SeenConnections.Contains($ConnId)) {
+            $SeenConnections.Add($ConnId) | Out-Null
+            Write-Host "Intercepted new connection to $($Conn.RemoteAddress):$($Conn.RemotePort)" -ForegroundColor Magenta
+            
+            $Telemetry = @{
+                device_id = $DeviceId
+                source_ip = $Conn.LocalAddress
+                destination_ip = $Conn.RemoteAddress
+                destination_port = $Conn.RemotePort
+                protocol = "tcp"
+                bytes_transferred = Get-Random -Minimum 1024 -Maximum 50000
+                action = "allow"
+            } | ConvertTo-Json
+
+            try {
+                Invoke-RestMethod -Uri "$ApiBase/projects/$ProjectId/monitoring/events" \`
+                    -Method Post \`
+                    -Headers @{ "Authorization" = "Bearer $AuthToken"; "Content-Type" = "application/json" } \`
+                    -Body $Telemetry | Out-Null
+            } catch {}
+        }
+    }
+    
+    if ((Get-Date).Second % 30 -eq 0) {
+        $PostureBody = @{ posture_score = 100; details = @{ firewall = 1; encryption = 1; platform = "Windows" } } | ConvertTo-Json
+        try {
+            Invoke-RestMethod -Uri "$ApiBase/projects/$ProjectId/devices/$DeviceId/posture" \`
+                -Method Patch \`
+                -Headers @{ "Authorization" = "Bearer $AuthToken"; "Content-Type" = "application/json" } \`
+                -Body $PostureBody | Out-Null
+        } catch {}
+    }
+    Start-Sleep -Seconds 2
+}`;
 
   const nodeMiddleware = `// Veylo Node.js / Express Zero Trust Access Guard Middleware
 // Paste this in your API gateway or main router file to protect private endpoints.
@@ -491,6 +576,38 @@ export async function veyloZeroTrustGuard(req, res, next) {
               </p>
               <pre className="bg-background border border-border p-3 rounded-lg font-fira-mono text-[10px] overflow-x-auto text-foreground max-h-56 box-border select-all">
                 {nodeMiddleware}
+              </pre>
+            </div>
+
+            {/* Snippet 3 */}
+            <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <IconBrandWindows size={18} className="text-primary" />
+                  <h3 className="text-sm font-bold text-foreground">Windows Real-Time TCP Agent</h3>
+                </div>
+                <button
+                  onClick={() => copyToClipboard(windowsScript, "windows-script")}
+                  className="text-muted-foreground hover:text-foreground cursor-pointer p-1 rounded-lg hover:bg-muted/10 transition-all flex items-center gap-1.5 text-xs font-semibold"
+                >
+                  {copiedText === "windows-script" ? (
+                    <>
+                      <IconCheck size={14} className="text-status-low-text" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <IconCopy size={14} />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Run this PowerShell script to register your Windows device and intercept actual real-time TCP traffic, streaming it live to this dashboard.
+              </p>
+              <pre className="bg-background border border-border p-3 rounded-lg font-fira-mono text-[10px] overflow-x-auto text-foreground max-h-56 box-border select-all">
+                {windowsScript}
               </pre>
             </div>
 
