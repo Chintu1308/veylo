@@ -16,7 +16,23 @@
     <!-- Loaded via CSS @import in index.css; this preconnect speeds up the connection -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <script type="module" crossorigin src="/veylo/assets/index-CqhID31y.js"></script>
+    <script>
+      (function() {
+        const saved = localStorage.getItem("veylo-theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const isDark = saved ? saved === "dark" : prefersDark;
+        if (isDark) {
+          document.documentElement.classList.add("dark");
+          document.documentElement.style.setProperty("--color-bg", "#03020b");
+          document.documentElement.style.setProperty("--color-fg", "#fcfcfd");
+        } else {
+          document.documentElement.classList.remove("dark");
+          document.documentElement.style.setProperty("--color-bg", "#fdfdfc");
+          document.documentElement.style.setProperty("--color-fg", "#09090b");
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/veylo/assets/index-BP9S6Ry4.js"></script>
     <link rel="stylesheet" crossorigin href="/veylo/assets/index-B64o58xi.css">
   </head>
   <body>
