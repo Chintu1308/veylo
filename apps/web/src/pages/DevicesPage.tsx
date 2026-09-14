@@ -208,8 +208,18 @@ Write-Host "Initializing Veylo Agent enrollment for Windows..." -ForegroundColor
 
 if (Test-Path $DeviceIdFile) {
     $DeviceId = Get-Content $DeviceIdFile
-    Write-Host "Found existing Veylo Device ID: $DeviceId" -ForegroundColor Green
-} else {
+    try {
+        # Verify device still exists on the server
+        Invoke-RestMethod -Uri "$ApiBase/projects/$ProjectId/devices/$DeviceId" \`
+            -Method Get -Headers @{ "Authorization" = "Bearer $AuthToken" } | Out-Null
+        Write-Host "Found existing Veylo Device ID: $DeviceId" -ForegroundColor Green
+    } catch {
+        Write-Host "Device ID expired. Re-registering..." -ForegroundColor Yellow
+        Remove-Item $DeviceIdFile
+    }
+}
+
+if (-not (Test-Path $DeviceIdFile)) {
     $Hostname = [System.Net.Dns]::GetHostName()
     $Body = @{ name = $Hostname; os = "windows" } | ConvertTo-Json
     
