@@ -124,7 +124,8 @@ export class DevicesService {
     });
 
     // Auto-generate a network telemetry event for this posture check-in
-    // so device detail page always has traffic data to show
+    // Disabled for Windows demo - we only want real traffic now!
+    /*
     try {
       await this.monitoringService.logNetworkEvent(projectId, {
         device_id: deviceId,
@@ -139,6 +140,7 @@ export class DevicesService {
     } catch (err: any) {
       this.logger.warn(`Failed to log telemetry event for device ${deviceId}: ${err.message}`);
     }
+    */
 
     this.eventsGateway.broadcastToProject(projectId, 'device.updated', data);
     return data as Device;
