@@ -240,12 +240,16 @@ while ($true) {
         $ConnId = "$($Conn.LocalAddress):$($Conn.LocalPort)-$($Conn.RemoteAddress):$($Conn.RemotePort)"
         if (-not $SeenConnections.Contains($ConnId)) {
             $SeenConnections.Add($ConnId) | Out-Null
-            Write-Host "Intercepted new connection to $($Conn.RemoteAddress):$($Conn.RemotePort)" -ForegroundColor Magenta
+            
+            $DisplayHost = $Conn.RemoteAddress
+            try { $DisplayHost = [System.Net.Dns]::GetHostEntry($Conn.RemoteAddress).HostName } catch {}
+
+            Write-Host "Intercepted new connection to $DisplayHost" -ForegroundColor Magenta
             
             $Telemetry = @{
                 device_id = $DeviceId
                 source_ip = $Conn.LocalAddress
-                destination_ip = $Conn.RemoteAddress
+                destination_ip = $DisplayHost
                 destination_port = $Conn.RemotePort
                 protocol = "tcp"
                 bytes_transferred = Get-Random -Minimum 1024 -Maximum 50000
