@@ -140,7 +140,15 @@ if (Test-Path $DeviceIdFile) {
 }
 
 $SeenConnections = New-Object System.Collections.Generic.HashSet[string]
-Write-Host "\`n[🛡] Veylo Real-Time Monitor Active. Waiting for new connections..." -ForegroundColor Cyan
+Write-Host "\`n[🛡] Veylo Real-Time Monitor Active. Initializing baseline..." -ForegroundColor Cyan
+
+# Baseline existing connections so we only alert on NEW traffic
+$InitialConnections = Get-NetTCPConnection -State Established -ErrorAction SilentlyContinue
+foreach ($Conn in $InitialConnections) {
+    $ConnId = "$($Conn.LocalAddress):$($Conn.LocalPort)-$($Conn.RemoteAddress):$($Conn.RemotePort)"
+    $SeenConnections.Add($ConnId) | Out-Null
+}
+
 Write-Host "Try opening a new PowerShell window and typing: curl https://google.com" -ForegroundColor Yellow
 
 while ($true) {
