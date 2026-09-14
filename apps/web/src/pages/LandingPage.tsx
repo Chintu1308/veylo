@@ -177,7 +177,7 @@ function RotatingEarth({ isDark }: { isDark: boolean }) {
 export default function LandingPage() {
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem("veylo-theme");
-    return saved ? saved === "dark" : true;
+    return saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
