@@ -27,7 +27,7 @@ async function bootstrap() {
   const port = parseInt(process.env.API_PORT ?? '3001', 10);
   await app.listen(port);
 
-  console.log(`\n🛡  Veylo API running on http://localhost:${port}`);
+  console.log(`\n🛡  Veylo API listening on port ${port} (Available via Render public URL if deployed)`);
   console.log(`   SUPABASE_URL: ${process.env.SUPABASE_URL ?? '(not set)'}\n`);
 }
 
