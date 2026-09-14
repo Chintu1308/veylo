@@ -242,7 +242,10 @@ while ($true) {
             $SeenConnections.Add($ConnId) | Out-Null
             
             $DisplayHost = $Conn.RemoteAddress
-            try { $DisplayHost = [System.Net.Dns]::GetHostEntry($Conn.RemoteAddress).HostName } catch {}
+            try { 
+                $Resolved = [System.Net.Dns]::GetHostEntry($Conn.RemoteAddress).HostName 
+                if ($Resolved) { $DisplayHost = "$Resolved ($($Conn.RemoteAddress))" }
+            } catch {}
 
             Write-Host "Intercepted new connection to $DisplayHost" -ForegroundColor Magenta
             
