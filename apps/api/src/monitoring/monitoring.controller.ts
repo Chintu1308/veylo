@@ -34,6 +34,30 @@ export class MonitoringController {
     return this.monitoringService.listEvents(projectId, deviceId ? { device_id: deviceId } : {}, 100);
   }
 
+  @Get('personal-alerts')
+  async getPersonalAlerts(
+    @Param('projectId') projectId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.monitoringService.getPersonalAlerts(projectId, user.sub);
+  }
+
+  @Post('personal-alerts')
+  @HttpCode(HttpStatus.CREATED)
+  async savePersonalAlert(
+    @Param('projectId') projectId: string,
+    @Body() body: { matched_rule: string; destination_ip: string; device_id?: string },
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.monitoringService.savePersonalAlert(
+      projectId,
+      user.sub,
+      body.matched_rule,
+      body.destination_ip,
+      body.device_id,
+    );
+  }
+
   @Post('events')
   @HttpCode(HttpStatus.OK)
   async submitEvent(

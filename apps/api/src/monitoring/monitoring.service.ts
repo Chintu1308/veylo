@@ -196,4 +196,46 @@ export class MonitoringService {
       incident.id,
     );
   }
+
+  async savePersonalAlert(
+    projectId: string,
+    userId: string,
+    matchedRule: string,
+    destinationIp: string,
+    deviceId?: string,
+  ) {
+    const { data, error } = await this.supabase.admin
+      .from('personal_alerts')
+      .insert({
+        project_id: projectId,
+        user_id: userId,
+        matched_rule: matchedRule,
+        destination_ip: destinationIp,
+        device_id: deviceId,
+      })
+      .select('*')
+      .single();
+
+    if (error) {
+      this.logger.error(`Failed to save personal alert: ${error.message}`);
+      throw new Error('Failed to save personal alert');
+    }
+    return data;
+  }
+
+  async getPersonalAlerts(projectId: string, userId: string) {
+    const { data, error } = await this.supabase.admin
+      .from('personal_alerts')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      this.logger.error(`Failed to get personal alerts: ${error.message}`);
+      throw new Error('Failed to get personal alerts');
+    }
+    return data;
+  }
 }
