@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase.service';
 import { EventsGateway } from '../events/events.gateway';
 import { MonitoringService } from '../monitoring/monitoring.service';
@@ -66,7 +66,7 @@ export class DevicesService {
       .single();
 
     if (error || !data) {
-      throw new Error(`Device registration failed: ${error?.message}`);
+      throw new BadRequestException(`Device registration failed: ${error?.message} | Details: ${JSON.stringify(error)}`);
     }
 
     await this.supabase.admin.from('device_history').insert({
