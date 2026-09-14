@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase.service';
 import { EventsGateway } from '../events/events.gateway';
 import { MonitoringService } from '../monitoring/monitoring.service';
@@ -21,28 +21,29 @@ export class DevicesService {
     const { data, error } = await this.supabase.admin
       .from('devices')
       .select('*')
-      .eq('project_id', projectId);
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
 
     if (error) {
-      this.logger.error(`Error listing devices for project ${projectId}`, error.message);
-      return [];
+      throw new Error(`Failed to list devices: ${error.message}`);
     }
-    return (data ?? []) as Device[];
+
+    return data as Device[];
   }
 
-  async getDevice(projectId: string, deviceId: string): Promise<Device | null> {
+  async getDevice(projectId: string, deviceId: string): Promise<Device> {
     const { data, error } = await this.supabase.admin
       .from('devices')
       .select('*')
       .eq('project_id', projectId)
       .eq('id', deviceId)
-      .maybeSingle();
+      .single();
 
-    if (error) {
-      this.logger.error(`Error getting device ${deviceId}`, error.message);
-      return null;
+    if (error || !data) {
+      throw new NotFoundException(`Device ${deviceId} not found`);
     }
-    return data as Device | null;
+
+    return data as Device;
   }
 
   async registerDevice(
@@ -92,7 +93,7 @@ export class DevicesService {
       .single();
 
     if (checkErr || !device) {
-      throw new Error(`Device ${deviceId} not found`);
+      throw new NotFoundException(`Device ${deviceId} not found`);
     }
 
     let finalStatus = device.status;
