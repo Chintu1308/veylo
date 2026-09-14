@@ -17,22 +17,29 @@ interface PersonalAlert {
   created_at: string;
 }
 
+interface PersonalAlertRule {
+  id: string;
+  rule_text: string;
+  created_at: string;
+}
+
 export default function PersonalAlerts() {
   const { session, selectedProject } = useAuthStore();
-  const [alerts, setAlerts] = useState<string[]>([]);
+  const [rules, setRules] = useState<PersonalAlertRule[]>([]);
   const [history, setHistory] = useState<PersonalAlert[]>([]);
-  const [newAlert, setNewAlert] = useState("");
+  const [newRule, setNewRule] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"rules" | "history">("rules");
   const [activePopups, setActivePopups] = useState<{id: number, msg: string}[]>([]);
 
-  // Load rules from localStorage
+  // Fetch rules from Supabase
   useEffect(() => {
-    const saved = localStorage.getItem("veylo-personal-alerts");
-    if (saved) {
-      try { setAlerts(JSON.parse(saved)); } catch (e) {}
+    if (selectedProject?.id) {
+      apiRequest<PersonalAlertRule[]>(`/projects/${selectedProject.id}/monitoring/personal-rules`)
+        .then(setRules)
+        .catch(console.error);
     }
-  }, []);
+  }, [selectedProject?.id]);
 
   // Fetch history from Supabase
   useEffect(() => {
@@ -43,12 +50,9 @@ export default function PersonalAlerts() {
     }
   }, [isOpen, activeTab, selectedProject?.id]);
 
+  // Connect to socket to listen for matching traffic
   useEffect(() => {
-    localStorage.setItem("veylo-personal-alerts", JSON.stringify(alerts));
-  }, [alerts]);
-
-  useEffect(() => {
-    if (!selectedProject?.id || alerts.length === 0) return;
+    if (!selectedProject?.id || rules.length === 0) return;
 
     const socketUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:3001";
     const socket = io(socketUrl);
@@ -58,17 +62,17 @@ export default function PersonalAlerts() {
     });
 
     socket.on("network.event", (event: NetworkEvent) => {
-      const matched = alerts.find(a => event.destination_ip.toLowerCase().includes(a.toLowerCase()));
+      const matched = rules.find(r => event.destination_ip.toLowerCase().includes(r.rule_text.toLowerCase()));
 
       if (matched) {
         const popupId = Date.now() + Math.random();
         setActivePopups(prev => [...prev, { id: popupId, msg: `🚨 ALERT: Traffic to ${event.destination_ip}` }]);
 
-        // Save to Supabase
+        // Save triggered alert to Supabase
         apiRequest(`/projects/${selectedProject.id}/monitoring/personal-alerts`, {
           method: "POST",
           body: JSON.stringify({
-            matched_rule: matched,
+            matched_rule: matched.rule_text,
             destination_ip: event.destination_ip,
             device_id: event.device_id
           })
@@ -84,17 +88,41 @@ export default function PersonalAlerts() {
       socket.emit("leaveProject", { projectId: selectedProject.id });
       socket.disconnect();
     };
-  }, [selectedProject?.id, alerts]);
+  }, [selectedProject?.id, rules]);
 
-  const addAlert = (e: React.FormEvent) => {
+  const addRule = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newAlert.trim() && !alerts.includes(newAlert.trim())) {
-      setAlerts([...alerts, newAlert.trim()]);
-      setNewAlert("");
+    if (!selectedProject?.id || !newRule.trim()) return;
+    
+    // Check if it already exists locally to avoid duplicates
+    if (rules.some(r => r.rule_text.toLowerCase() === newRule.trim().toLowerCase())) {
+      setNewRule("");
+      return;
+    }
+
+    try {
+      const savedRule = await apiRequest<PersonalAlertRule>(`/projects/${selectedProject.id}/monitoring/personal-rules`, {
+        method: "POST",
+        body: JSON.stringify({ rule_text: newRule.trim() })
+      });
+      setRules([savedRule, ...rules]);
+      setNewRule("");
+    } catch (err) {
+      console.error("Failed to save rule", err);
     }
   };
 
-  const removeAlert = (target: string) => setAlerts(alerts.filter(a => a !== target));
+  const removeRule = async (ruleId: string) => {
+    if (!selectedProject?.id) return;
+    try {
+      await apiRequest(`/projects/${selectedProject.id}/monitoring/personal-rules/${ruleId}`, {
+        method: "DELETE"
+      });
+      setRules(rules.filter(r => r.id !== ruleId));
+    } catch (err) {
+      console.error("Failed to delete rule", err);
+    }
+  };
 
   if (!session) return null;
 
@@ -111,10 +139,10 @@ export default function PersonalAlerts() {
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-card border border-border text-foreground hover:bg-accent px-4 py-2 rounded-full shadow-lg text-xs font-bold transition-colors flex items-center gap-2"
+          className="bg-card border border-border text-foreground hover:bg-accent px-4 py-2 rounded-full shadow-lg text-xs font-bold transition-colors flex items-center gap-2 cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          My Alerts ({alerts.length})
+          My Alerts ({rules.length})
         </button>
 
         {isOpen && (
@@ -123,13 +151,13 @@ export default function PersonalAlerts() {
             <div className="flex border-b border-border">
               <button 
                 onClick={() => setActiveTab("rules")}
-                className={`flex-1 py-2 text-xs font-bold ${activeTab === "rules" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
+                className={`flex-1 py-2 text-xs font-bold cursor-pointer ${activeTab === "rules" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
               >
                 Rules
               </button>
               <button 
                 onClick={() => setActiveTab("history")}
-                className={`flex-1 py-2 text-xs font-bold ${activeTab === "history" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
+                className={`flex-1 py-2 text-xs font-bold cursor-pointer ${activeTab === "history" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
               >
                 Notifications
               </button>
@@ -139,16 +167,16 @@ export default function PersonalAlerts() {
               {activeTab === "rules" ? (
                 <>
                   <p className="text-xs text-muted-foreground mb-4">Get notified when traffic hits a specific IP or Domain.</p>
-                  <form onSubmit={addAlert} className="flex gap-2 mb-4">
-                    <input type="text" value={newAlert} onChange={e => setNewAlert(e.target.value)} placeholder="e.g. netflix.com" className="flex-1 bg-background border border-border rounded px-2 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary" />
+                  <form onSubmit={addRule} className="flex gap-2 mb-4">
+                    <input type="text" value={newRule} onChange={e => setNewRule(e.target.value)} placeholder="e.g. netflix.com" className="flex-1 bg-background border border-border rounded px-2 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary" />
                     <button type="submit" className="bg-primary text-primary-foreground px-3 py-1.5 rounded text-xs font-bold hover:bg-primary/90 cursor-pointer">Add</button>
                   </form>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {alerts.length === 0 && <div className="text-xs text-muted-foreground italic text-center py-2">No active rules</div>}
-                    {alerts.map(alert => (
-                      <div key={alert} className="flex items-center justify-between bg-background border border-border rounded px-2 py-1.5 text-xs">
-                        <span className="text-foreground truncate">{alert}</span>
-                        <button onClick={() => removeAlert(alert)} className="text-muted-foreground hover:text-status-critical-text cursor-pointer">
+                    {rules.length === 0 && <div className="text-xs text-muted-foreground italic text-center py-2">No active rules</div>}
+                    {rules.map(rule => (
+                      <div key={rule.id} className="flex items-center justify-between bg-background border border-border rounded px-2 py-1.5 text-xs">
+                        <span className="text-foreground truncate">{rule.rule_text}</span>
+                        <button onClick={() => removeRule(rule.id)} className="text-muted-foreground hover:text-status-critical-text cursor-pointer">
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                       </div>
