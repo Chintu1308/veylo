@@ -61,6 +61,7 @@ else
 
   if [ -z "\$DEVICE_ID" ]; then
     echo "[X] Enrollment failed. Verify your project ID or authentication token."
+    echo "API Response: \$REGISTRATION_RESPONSE"
     exit 1
   fi
   
