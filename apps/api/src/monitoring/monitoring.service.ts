@@ -3,11 +3,15 @@ import { MongoService } from '../common/mongo.service';
 import { IncidentsService } from '../incidents/incidents.service';
 import { EventsGateway } from '../events/events.gateway';
 
+import { SupabaseService } from '../common/supabase.service';
+
 @Injectable()
 export class MonitoringService {
   private readonly logger = new Logger(MonitoringService.name);
 
   constructor(
+    @Inject(SupabaseService)
+    private readonly supabase: SupabaseService,
     @Inject(MongoService)
     private readonly mongo: MongoService,
     @Inject(forwardRef(() => IncidentsService))
