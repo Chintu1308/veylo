@@ -155,22 +155,60 @@ export default function DeviceDetailsPage() {
             ) : (
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-foreground m-0">{device.name}</h1>
-                <button 
-                  onClick={() => setEditingName(true)}
-                  className="text-[10px] uppercase font-bold text-muted-foreground hover:text-primary transition-colors tracking-widest bg-muted px-2 py-1 rounded"
-                >
-                  Rename
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setEditingName(true)}
+                    className="text-[10px] uppercase font-bold text-muted-foreground hover:text-primary transition-colors tracking-widest bg-muted px-2 py-1 rounded"
+                  >
+                    Rename
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      if (confirm("Are you sure you want to delete this device? This action cannot be undone.")) {
+                        try {
+                          await apiRequest(`/projects/${selectedProject?.id}/devices/${device.id}`, { method: "DELETE" });
+                          navigate(`/${slug}/devices`);
+                        } catch (err: any) {
+                          alert("Failed to delete: " + err.message);
+                        }
+                      }
+                    }}
+                    className="text-[10px] uppercase font-bold text-status-critical-text hover:text-status-critical-text/80 transition-colors tracking-widest bg-status-critical-bg px-2 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             )}
             <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground">
               <span>ID: {device.id}</span>
               <span>OS: {device.os.toUpperCase()}</span>
-              <span>Status: <span className={`uppercase font-bold ${
-                device.status === "approved" ? "text-status-low-text" 
-                : device.status === "pending" ? "text-status-medium-text" 
-                : "text-status-critical-text"
-              }`}>{device.status}</span></span>
+              <span>Status: 
+                <select
+                  value={device.status}
+                  onChange={async (e) => {
+                    const newStatus = e.target.value;
+                    try {
+                      const updated = await apiRequest<Device>(`/projects/${selectedProject?.id}/devices/${device.id}/status`, {
+                        method: "PATCH",
+                        body: JSON.stringify({ status: newStatus }),
+                      });
+                      setDevice(updated);
+                    } catch (err: any) {
+                      alert("Failed to update status: " + err.message);
+                    }
+                  }}
+                  className={`ml-2 uppercase font-bold text-xs bg-transparent border-none outline-none cursor-pointer ${
+                    device.status === "approved" ? "text-status-low-text" 
+                    : device.status === "pending" ? "text-status-medium-text" 
+                    : "text-status-critical-text"
+                  }`}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="blocked">Blocked</option>
+                </select>
+              </span>
               <span className="flex items-center gap-1">
                 <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-status-low-text" : "bg-status-critical-text"}`} />
                 <span className={`uppercase font-bold ${isOnline ? "text-status-low-text" : "text-status-critical-text"}`}>

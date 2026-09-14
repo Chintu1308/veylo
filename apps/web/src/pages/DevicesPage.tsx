@@ -320,6 +320,7 @@ export async function veyloZeroTrustGuard(req, res, next) {
                     <th className="p-4">Posture Score</th>
                     <th className="p-4">Status</th>
                     <th className="p-4">Last Seen</th>
+                    <th className="p-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
@@ -360,15 +361,32 @@ export async function veyloZeroTrustGuard(req, res, next) {
                           </div>
                         </td>
                         <td className="p-4">
-                          <span className={`text-[10px] font-bold font-mono px-2 py-0.5 border rounded uppercase ${
-                            device.status === "approved"
-                              ? "bg-status-low-bg text-status-low-text border-status-low-text/20"
-                              : device.status === "pending"
-                                ? "bg-status-medium-bg text-status-medium-text border-status-medium-text/20"
-                                : "bg-status-critical-bg text-status-critical-text border-status-critical-text/20"
-                          }`}>
-                            {device.status}
-                          </span>
+                          <select
+                            onClick={(e) => e.stopPropagation()}
+                            value={device.status}
+                            onChange={(e) => {
+                              const newStatus = e.target.value;
+                              apiRequest(`/projects/${selectedProject?.id}/devices/${device.id}/status`, {
+                                method: "PATCH",
+                                body: JSON.stringify({ status: newStatus })
+                              })
+                              .then(() => {
+                                setDevices(prev => prev.map(d => d.id === device.id ? { ...d, status: newStatus as any } : d));
+                              })
+                              .catch(err => alert("Status update failed: " + err.message));
+                            }}
+                            className={`text-[10px] font-bold font-mono px-2 py-1 border rounded uppercase cursor-pointer outline-none ${
+                              device.status === "approved"
+                                ? "bg-status-low-bg text-status-low-text border-status-low-text/20"
+                                : device.status === "pending"
+                                  ? "bg-status-medium-bg text-status-medium-text border-status-medium-text/20"
+                                  : "bg-status-critical-bg text-status-critical-text border-status-critical-text/20"
+                            }`}
+                          >
+                            <option value="pending">PENDING</option>
+                            <option value="approved">APPROVED</option>
+                            <option value="blocked">BLOCKED</option>
+                          </select>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
@@ -382,6 +400,21 @@ export async function veyloZeroTrustGuard(req, res, next) {
                           {device.last_seen_at 
                             ? new Date(device.last_seen_at).toLocaleString() 
                             : "Never"}
+                        </td>
+                        <td className="p-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm("Are you sure you want to delete this device?")) {
+                                apiRequest(`/projects/${selectedProject?.id}/devices/${device.id}`, { method: "DELETE" })
+                                  .then(() => setDevices(prev => prev.filter(d => d.id !== device.id)))
+                                  .catch(err => alert("Delete failed: " + err.message));
+                              }
+                            }}
+                            className="text-[10px] uppercase font-bold text-status-critical-text hover:text-status-critical-text/80 transition-colors tracking-widest bg-status-critical-bg px-2 py-1 rounded"
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     );
