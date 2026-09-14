@@ -27,7 +27,7 @@ import { EventsModule } from './events/events.module';
       {
         name: 'global',
         ttl: 60_000, // 60 seconds
-        limit: 100,
+        limit: 1000, // Bumped to 1000 for the live demo to prevent Windows Agent from triggering 429
       },
       {
         name: 'auth',
