@@ -1,6 +1,7 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { MongoService } from '../common/mongo.service';
 import { IncidentsService } from '../incidents/incidents.service';
+import { EventsGateway } from '../events/events.gateway';
 
 @Injectable()
 export class MonitoringService {
@@ -11,6 +12,8 @@ export class MonitoringService {
     private readonly mongo: MongoService,
     @Inject(forwardRef(() => IncidentsService))
     private readonly incidentsService: IncidentsService,
+    @Inject(EventsGateway)
+    private readonly eventsGateway: EventsGateway,
   ) {}
 
   async listEvents(projectId: string, filter: Record<string, any> = {}, limit = 100) {
@@ -32,11 +35,16 @@ export class MonitoringService {
   ) {
     const timestamp = new Date();
     
-    await this.mongo.insertEvent({
+    const doc = {
       project_id: projectId,
       ...event,
       timestamp,
-    });
+    };
+
+    await this.mongo.insertEvent(doc);
+
+    // Broadcast to frontend for real-time traffic view
+    this.eventsGateway.broadcastToProject(projectId, 'network.event', doc);
 
     await this.detectThreats(projectId, event, timestamp);
   }
