@@ -100,15 +100,15 @@ export default function PersonalAlerts() {
 
   return (
     <>
-      <div className="fixed bottom-20 left-6 z-[100] flex flex-col gap-3">
+      <div className="fixed bottom-20 right-6 z-[100] flex flex-col gap-3">
         {activePopups.map(popup => (
-          <div key={popup.id} className="bg-status-critical-bg border border-status-critical-text text-status-critical-text px-4 py-3 rounded-lg shadow-xl animate-in slide-in-from-left font-bold text-sm pointer-events-auto">
+          <div key={popup.id} className="bg-status-critical-bg border border-status-critical-text text-status-critical-text px-4 py-3 rounded-lg shadow-xl animate-in slide-in-from-right font-bold text-sm pointer-events-auto">
             {popup.msg}
           </div>
         ))}
       </div>
 
-      <div className="fixed bottom-6 left-6 z-40">
+      <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="bg-card border border-border text-foreground hover:bg-accent px-4 py-2 rounded-full shadow-lg text-xs font-bold transition-colors flex items-center gap-2"
@@ -118,7 +118,7 @@ export default function PersonalAlerts() {
         </button>
 
         {isOpen && (
-          <div className="absolute bottom-full mb-2 left-0 w-80 bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+          <div className="absolute bottom-full mb-2 right-0 w-80 bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4">
             
             <div className="flex border-b border-border">
               <button 
