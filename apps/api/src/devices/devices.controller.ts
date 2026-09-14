@@ -73,6 +73,14 @@ export class DevicesController {
     return device;
   }
 
+  @Get(':deviceId')
+  async getDevice(
+    @Param('projectId') projectId: string,
+    @Param('deviceId') deviceId: string,
+  ) {
+    return this.devicesService.getDevice(projectId, deviceId);
+  }
+
   @Patch(':deviceId/posture')
   @HttpCode(HttpStatus.OK)
   async updatePosture(
