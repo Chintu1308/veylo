@@ -242,4 +242,51 @@ export class MonitoringService {
     }
     return data;
   }
+
+  async savePersonalAlertRule(projectId: string, userId: string, ruleText: string) {
+    const { data, error } = await this.supabase.admin
+      .from('personal_alert_rules')
+      .insert({
+        project_id: projectId,
+        user_id: userId,
+        rule_text: ruleText,
+      })
+      .select('*')
+      .single();
+
+    if (error) {
+      this.logger.error(`Failed to save personal alert rule: ${error.message}`);
+      throw new Error('Failed to save personal alert rule');
+    }
+    return data;
+  }
+
+  async getPersonalAlertRules(projectId: string, userId: string) {
+    const { data, error } = await this.supabase.admin
+      .from('personal_alert_rules')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      this.logger.error(`Failed to get personal alert rules: ${error.message}`);
+      throw new Error('Failed to get personal alert rules');
+    }
+    return data;
+  }
+
+  async deletePersonalAlertRule(projectId: string, userId: string, ruleId: string) {
+    const { error } = await this.supabase.admin
+      .from('personal_alert_rules')
+      .delete()
+      .eq('id', ruleId)
+      .eq('project_id', projectId)
+      .eq('user_id', userId);
+
+    if (error) {
+      this.logger.error(`Failed to delete personal alert rule: ${error.message}`);
+      throw new Error('Failed to delete personal alert rule');
+    }
+  }
 }

@@ -42,6 +42,34 @@ export class MonitoringController {
     return this.monitoringService.getPersonalAlerts(projectId, user.sub);
   }
 
+  @Get('personal-rules')
+  async getPersonalAlertRules(
+    @Param('projectId') projectId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.monitoringService.getPersonalAlertRules(projectId, user.sub);
+  }
+
+  @Post('personal-rules')
+  @HttpCode(HttpStatus.CREATED)
+  async savePersonalAlertRule(
+    @Param('projectId') projectId: string,
+    @Body() body: { rule_text: string },
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.monitoringService.savePersonalAlertRule(projectId, user.sub, body.rule_text);
+  }
+
+  @Delete('personal-rules/:ruleId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deletePersonalAlertRule(
+    @Param('projectId') projectId: string,
+    @Param('ruleId') ruleId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    await this.monitoringService.deletePersonalAlertRule(projectId, user.sub, ruleId);
+  }
+
   @Post('personal-alerts')
   @HttpCode(HttpStatus.CREATED)
   async savePersonalAlert(
