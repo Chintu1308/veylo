@@ -2,7 +2,6 @@ import {
   IconSun,
   IconMoon,
   IconChevronRight,
-  IconShieldLock,
   IconMenu,
   IconX,
   IconShieldCheck,

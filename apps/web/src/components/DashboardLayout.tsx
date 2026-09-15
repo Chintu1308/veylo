@@ -3,7 +3,6 @@ import {
   IconLayoutDashboard,
   IconLogout,
   IconPlus,
-  IconShieldLock,
   IconTimeline,
   IconUsers,
   IconX,

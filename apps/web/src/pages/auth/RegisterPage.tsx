@@ -2,7 +2,6 @@ import {
   IconCheck,
   IconEye,
   IconEyeOff,
-  IconShieldLock,
 } from "@tabler/icons-react";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
