@@ -86,15 +86,10 @@ export default function LoginPage() {
       <div className="w-full max-w-[420px] bg-card border border-border shadow-2xl rounded-2xl p-8 relative z-10">
         
         {/* Brand Header */}
-        <div className="flex items-center gap-3.5 mb-8">
-          <div className="w-10 h-10 flex items-center justify-center rounded-lg shadow-md shadow-primary/10">
-            <img src="/veylo.png" alt="Veylo Logo" className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(22,199,180,0.6)]" />
-          </div>
-          <div>
-            <img src="/veylo_text.png" alt="Veylo" className="h-5 object-contain translate-y-0.5" />
-            <div className="text-[10px] text-muted-foreground tracking-widest uppercase leading-none font-medium mt-1">
-              Zero Trust Telemetry
-            </div>
+        <div className="flex flex-col items-start gap-2 mb-8">
+          <img src="/veylo_text.png" alt="Veylo" className="h-8 object-contain" />
+          <div className="text-[10px] text-muted-foreground tracking-widest uppercase leading-none font-medium mt-1">
+            Zero Trust Telemetry
           </div>
         </div>
 

@@ -24,7 +24,7 @@ export default function ProjectRedirect() {
           const first = projects[0];
           setProject(first);
           navigate(`/${first.slug}`, { replace: true });
-          // Instead of redirecting to landing, let the user stay here and show Create Project UI
+        } else {
           setIsLoading(false);
         }
       } catch (err) {
@@ -64,8 +64,8 @@ export default function ProjectRedirect() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 shadow-xl">
-        <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><line x1="12" y1="22" x2="12" y2="12"></line></svg>
+        <div className="flex justify-center mb-8">
+          <img src="/veylo_text.png" alt="Veylo" className="h-8 object-contain" />
         </div>
         <h1 className="text-2xl font-bold text-foreground mb-2">Welcome to Veylo</h1>
         <p className="text-sm text-muted-foreground mb-8">

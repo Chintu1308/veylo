@@ -459,10 +459,7 @@ export default function RegisterPage() {
 
         {/* Wordmark logo */}
         <Link to="/" className="flex items-center gap-2 relative z-10">
-          <div className="w-8 h-8 flex items-center justify-center rounded-lg shadow-md shadow-primary/10">
-            <img src="/veylo.png" alt="Veylo Logo" className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(22,199,180,0.6)]" />
-          </div>
-          <img src="/veylo_text.png" alt="Veylo" className="h-4 object-contain translate-y-0.5" />
+          <img src="/veylo_text.png" alt="Veylo" className="h-6 object-contain translate-y-0.5" />
         </Link>
 
         {/* Form Container Card */}
