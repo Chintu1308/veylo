@@ -173,8 +173,11 @@ function RotatingEarth({ isDark }: { isDark: boolean }) {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
 }
 
+import { useAuthStore } from "../store/authStore";
+
 // ── Main Page Redesign ──────────────────────────────────────────────────────────
 export default function LandingPage() {
+  const { session } = useAuthStore();
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem("veylo-theme");
     return saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -280,14 +283,27 @@ export default function LandingPage() {
             >
               {isDark ? <IconSun size={18} /> : <IconMoon size={18} />}
             </button>
-            <Link to="/login" className="text-sm font-semibold hover:text-primary transition-colors">Sign In</Link>
-            <Link
-              to="/register"
-              className="px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-accent hover:text-black rounded-lg transition-all shadow-md shadow-primary/5 cursor-pointer flex items-center gap-1.5"
-            >
-              Get Started
-              <IconChevronRight size={14} />
-            </Link>
+            
+            {session ? (
+              <Link
+                to="/dashboard"
+                className="px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-accent hover:text-black rounded-lg transition-all shadow-md shadow-primary/5 cursor-pointer flex items-center gap-1.5"
+              >
+                Dashboard
+                <IconChevronRight size={14} />
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm font-semibold hover:text-primary transition-colors">Sign In</Link>
+                <Link
+                  to="/register"
+                  className="px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-accent hover:text-black rounded-lg transition-all shadow-md shadow-primary/5 cursor-pointer flex items-center gap-1.5"
+                >
+                  Get Started
+                  <IconChevronRight size={14} />
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -307,22 +323,34 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Mobile Dropdown */}
+        {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-b border-border/80 bg-background/95 backdrop-blur-md px-6 py-6 flex flex-col gap-4 animate-in slide-in-from-top duration-200">
+          <div className="md:hidden absolute top-16 left-0 w-full bg-background/95 backdrop-blur-md border-b border-border/60 flex flex-col p-6 gap-3 shadow-2xl z-40">
             <a href="#product" onClick={() => setMobileMenuOpen(false)} className="font-medium py-1">Product</a>
             <a href="#detections" onClick={() => setMobileMenuOpen(false)} className="font-medium py-1">Detections</a>
             <a href="#forensics" onClick={() => setMobileMenuOpen(false)} className="font-medium py-1">Ledger</a>
             <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="font-medium py-1">Pricing</a>
             <div className="h-px bg-border my-1" />
-            <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="font-semibold py-1">Sign In</Link>
-            <Link
-              to="/register"
-              onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-2.5 text-center font-semibold text-primary-foreground bg-primary hover:bg-accent rounded-lg transition-all"
-            >
-              Get Started
-            </Link>
+            {session ? (
+              <Link
+                to="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-2.5 text-center font-semibold text-primary-foreground bg-primary hover:bg-accent rounded-lg transition-all"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="font-semibold py-1">Sign In</Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-2.5 text-center font-semibold text-primary-foreground bg-primary hover:bg-accent rounded-lg transition-all"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         )}
       </header>
@@ -349,13 +377,23 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Link
-              to="/register"
-              className="px-6 py-3.5 text-base font-bold text-primary-foreground bg-primary hover:bg-accent hover:text-black rounded-lg transition-all shadow-xl shadow-primary/10 flex items-center gap-2 cursor-pointer"
-            >
-              Start Free Trial
-              <IconChevronRight size={16} />
-            </Link>
+            {session ? (
+              <Link
+                to="/dashboard"
+                className="px-6 py-3.5 text-base font-bold text-primary-foreground bg-primary hover:bg-accent hover:text-black rounded-lg transition-all shadow-xl shadow-primary/10 flex items-center gap-2 cursor-pointer"
+              >
+                Go to Dashboard
+                <IconChevronRight size={16} />
+              </Link>
+            ) : (
+              <Link
+                to="/register"
+                className="px-6 py-3.5 text-base font-bold text-primary-foreground bg-primary hover:bg-accent hover:text-black rounded-lg transition-all shadow-xl shadow-primary/10 flex items-center gap-2 cursor-pointer"
+              >
+                Start Free Trial
+                <IconChevronRight size={16} />
+              </Link>
+            )}
             <a
               href="#product"
               className="px-6 py-3.5 text-base font-semibold border border-border bg-card/40 hover:bg-muted/10 rounded-lg transition-all"

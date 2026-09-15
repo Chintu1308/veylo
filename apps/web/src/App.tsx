@@ -5,7 +5,6 @@ import PersonalAlerts from "./components/PersonalAlerts";
 export default function App() {
   return (
     <>
-      <PersonalAlerts />
       <Router />
     </>
   );

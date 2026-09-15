@@ -14,6 +14,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { apiRequest } from "../lib/api";
 import type { Project } from "@veylo/shared";
+import PersonalAlerts from "./PersonalAlerts";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -150,6 +151,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans">
+      <PersonalAlerts />
       
       {/* Sidebar */}
       <aside className="w-60 bg-card border-r border-border/80 flex flex-col sticky top-0 h-screen select-none shrink-0 z-30">
