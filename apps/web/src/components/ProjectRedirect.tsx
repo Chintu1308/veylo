@@ -45,7 +45,7 @@ export default function ProjectRedirect() {
         method: "POST",
         body: JSON.stringify({
           name: newProjectName,
-          slug: newProjectName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, ""),
+          slug: newProjectName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") + "-" + Math.random().toString(36).substring(2, 6),
           description: "My first Veylo project"
         })
       });
