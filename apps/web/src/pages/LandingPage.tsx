@@ -257,12 +257,12 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border/60 transition-all duration-200">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/10 transition-transform group-hover:scale-105">
-              <IconShieldLock size={20} stroke={2.5} />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shadow-lg shadow-primary/10 transition-transform group-hover:scale-105">
+              <img src="/veylo.png" alt="Veylo Logo" className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(22,199,180,0.6)]" />
             </div>
             <div>
-              <span className="font-fira-mono font-bold tracking-tight text-lg uppercase">Veylo</span>
-              <span className="block text-[9px] text-muted-foreground tracking-widest uppercase leading-none font-medium">Verify Every Layer</span>
+              <img src="/veylo_text.png" alt="Veylo" className="h-5 object-contain translate-y-0.5" />
+              <span className="block text-[9px] text-muted-foreground tracking-widest uppercase leading-none font-medium mt-1">Verify Every Layer</span>
             </div>
           </Link>
 

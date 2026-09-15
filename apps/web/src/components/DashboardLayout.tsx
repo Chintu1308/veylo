@@ -156,14 +156,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <aside className="w-60 bg-card border-r border-border/80 flex flex-col sticky top-0 h-screen select-none shrink-0 z-30">
         
-        {/* Logo Section */}
+        {/* Brand Header */}
         <div className="px-6 py-4 border-b border-border/80 flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-md shadow-primary/5">
-            <IconShieldLock size={18} stroke={2.5} />
+          <div className="w-8 h-8 flex items-center justify-center rounded-lg shadow-md shadow-primary/5">
+            <img src="/veylo.png" alt="Veylo Logo" className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(22,199,180,0.6)]" />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="font-fira-mono font-bold tracking-tight text-base uppercase">Veylo</span>
-            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-muted border border-border text-muted-foreground rounded uppercase">
+            <img src="/veylo_text.png" alt="Veylo" className="h-4 object-contain translate-y-0.5" />
+            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-muted border border-border text-muted-foreground rounded uppercase ml-1">
               ADMIN
             </span>
           </div>
